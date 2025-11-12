@@ -44,17 +44,17 @@ async function start() {
 
     fastify.get('/', async (request, reply) => {
       //return { hello: 'What are you looking for?' }
-      return { hi: 'Fastify start function' };
+      return { hi: 'Fastify register routes' };
     });
 
     // Register routes
-    /*await fastify.register(authRoutes, { prefix: '/api/auth' });
+    await fastify.register(authRoutes, { prefix: '/api/auth' });
     await fastify.register(companiesRoutes, { prefix: '/api/companies' });
     await fastify.register(clientsRoutes, { prefix: '/api/clients' });
     await fastify.register(usersRoutes, { prefix: '/api/users' });
     await fastify.register(projectsRoutes, { prefix: '/api/projects' });
     await fastify.register(weatherRoutes, { prefix: '/api/weather' });
-    await fastify.register(photosRoutes, { prefix: '/api/photos' });*/
+    await fastify.register(photosRoutes, { prefix: '/api/photos' });
 
     // Start server
     await fastify.listen({ port: PORT }).then(() => {
