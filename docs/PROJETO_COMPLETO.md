@@ -107,9 +107,10 @@ O arquivo `.env` foi criado e configurado com as credenciais do Supabase:
 ```env
 PORT=3000
 LOG_LEVEL=info
+NODE_ENV=development
 ALLOWED_ORIGINS=http://localhost:5173,http://localhost:8080
 SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_ANON_KEY=eyJhbGci...
+SUPABASE_ANON_KEY=xxx
 ```
 
 ### 5. Tecnologias Utilizadas

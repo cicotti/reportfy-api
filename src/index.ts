@@ -41,13 +41,8 @@ async function start() {
       },
     });
 
-    // Health check
-    fastify.get('/health', async () => {
-      return { status: 'ok', timestamp: new Date().toISOString() };
-    });
-
-    fastify.get('/', async (request, reply) => {
-      return { status: 'Reportfy API is accessible' };
+    fastify.get('/', async () => {
+      return { status: 'Reportfy API is accessible', timestamp: new Date().toISOString() };
     });
 
     // Register routes
