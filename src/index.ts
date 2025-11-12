@@ -15,7 +15,13 @@ import photosRoutes from './routes/photos.routes';
 const PORT = parseInt(process.env.PORT || '5173', 10); // Default to 5173 for Vite compatibility
  
 const fastify = Fastify({
-  logger: { level: process.env.LOG_LEVEL || 'info' }
+  logger: { 
+    level: process.env.LOG_LEVEL || 'info',
+    transport: {
+      target: 'pino-pretty',
+      options: { colorize: true }
+    }
+  }
 });
 
 async function start() {
@@ -53,7 +59,7 @@ async function start() {
 
     // Start server
     await fastify.listen({ port: PORT }).then(() => {
-      console.log(`🚀 Server is running`);
+      console.log(`🚀 Server is running:`);
     });
   } catch (err) {
     fastify.log.error(err);

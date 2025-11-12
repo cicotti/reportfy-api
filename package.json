@@ -1,34 +1,35 @@
 {
-    "name":  "reportfy-api",
-    "version":  "1.0.0",
-    "description":  "API backend for Reportfy - SaaS Project Management",
-    "main":  "dist/index.js",
-    "scripts":  {
-                    "test":  "echo \\\"Error: no test specified\\\" \u0026\u0026 exit 1",
-                    "vercel-build":  "tsc",
-                    "build":  "tsc",
-                    "dev":  "tsx watch src/index.ts",
-                    "start":  "node dist/index.js"
-                },
-    "keywords":  [
-                     "fastify",
-                     "api",
-                     "typescript",
-                     "supabase"
-                 ],
-    "author":  "",
-    "license":  "ISC",
-    "type":  "commonjs",
-    "dependencies":  {
-                         "@fastify/cors":  "^11.1.0",
-                         "@fastify/multipart":  "^9.3.0",
-                         "@supabase/supabase-js":  "^2.81.1",
-                         "dotenv":  "^17.2.3",
-                         "fastify":  "^5.6.2"
-                     },
-    "devDependencies":  {
-                            "@types/node":  "^24.10.0",
-                            "tsx":  "^4.20.6",
-                            "typescript":  "^5.9.3"
-                        }
+  "name": "reportfy-api",
+  "version": "1.0.0",
+  "description": "API backend for Reportfy - SaaS Project Management",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \\\"Error: no test specified\\\" && exit 1",
+    "vercel-build": "tsc",
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "fastify",
+    "api",
+    "typescript",
+    "supabase"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@fastify/multipart": "^9.3.0",
+    "@supabase/supabase-js": "^2.81.1",
+    "dotenv": "^17.2.3",
+    "fastify": "^5.6.2",
+    "pino-pretty": "^13.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
 }
