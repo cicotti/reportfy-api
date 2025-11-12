@@ -1,10 +1,32 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as projectsService from '../services/projects.service';
+import { Type } from '@sinclair/typebox';
+import {
+  ProjectWithClientSchema,
+  ProjectInsertSchema,
+  ProjectUpdateSchema,
+  ProjectQuerySchema,
+  IdParamSchema,
+  ErrorSchema,
+  MessageSchema
+} from '../schemas/common.schemas';
 
 export default async function projectsRoutes(fastify: FastifyInstance) {
   // Get all projects
-  fastify.get('/', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['projects'],
+      description: 'Lista todos os projetos, opcionalmente filtrados por cliente',
+      security: [{ bearerAuth: [] }],
+      querystring: ProjectQuerySchema,
+      response: {
+        200: Type.Array(ProjectWithClientSchema),
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { client_id } = request.query as { client_id?: string };
       const projects = await projectsService.fetchProjects(request.authToken!, client_id);
@@ -16,7 +38,20 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
   });
 
   // Get project by ID
-  fastify.get('/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/:id', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['projects'],
+      description: 'Busca um projeto específico por ID',
+      security: [{ bearerAuth: [] }],
+      params: IdParamSchema,
+      response: {
+        200: ProjectWithClientSchema,
+        404: ErrorSchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { id } = request.params as { id: string };
       const project = await projectsService.fetchProject(request.authToken!, id);
@@ -33,7 +68,19 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
   });
 
   // Create project
-  fastify.post('/', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.post('/', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['projects'],
+      description: 'Cria um novo projeto',
+      security: [{ bearerAuth: [] }],
+      body: ProjectInsertSchema,
+      response: {
+        201: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const projectData = request.body as any;
       await projectsService.createProject(request.authToken!, projectData);
@@ -45,7 +92,20 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
   });
 
   // Update project
-  fastify.put('/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.put('/:id', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['projects'],
+      description: 'Atualiza um projeto existente',
+      security: [{ bearerAuth: [] }],
+      params: IdParamSchema,
+      body: ProjectUpdateSchema,
+      response: {
+        200: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { id } = request.params as { id: string };
       const projectData = request.body as any;
@@ -58,7 +118,19 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
   });
 
   // Delete project (soft delete)
-  fastify.delete('/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.delete('/:id', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['projects'],
+      description: 'Exclui um projeto (soft delete)',
+      security: [{ bearerAuth: [] }],
+      params: IdParamSchema,
+      response: {
+        200: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { id } = request.params as { id: string };
       await projectsService.softDeleteProject(request.authToken!, id);

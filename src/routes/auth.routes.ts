@@ -1,10 +1,32 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as authService from '../services/auth.service';
+import {
+  LoginBodySchema,
+  LoginResponseSchema,
+  SignupBodySchema,
+  SignupResponseSchema,
+  ResetPasswordBodySchema,
+  UpdatePasswordBodySchema,
+  UserSchema,
+  ErrorSchema,
+  MessageSchema
+} from '../schemas/common.schemas';
 
 export default async function authRoutes(fastify: FastifyInstance) {
   // Login
-  fastify.post('/login', async (request, reply) => {
+  fastify.post('/login', {
+    schema: {
+      tags: ['auth'],
+      description: 'Realiza login do usuário e retorna dados do usuário e sessão',
+      body: LoginBodySchema,
+      response: {
+        200: LoginResponseSchema,
+        400: ErrorSchema,
+        401: ErrorSchema
+      }
+    }
+  }, async (request, reply) => {
     try {
       const { email, password } = request.body as { email: string; password: string };
       
@@ -24,7 +46,17 @@ export default async function authRoutes(fastify: FastifyInstance) {
   });
 
   // Signup
-  fastify.post('/signup', async (request, reply) => {
+  fastify.post('/signup', {
+    schema: {
+      tags: ['auth'],
+      description: 'Cria uma nova conta de usuário e empresa',
+      body: SignupBodySchema,
+      response: {
+        200: SignupResponseSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request, reply) => {
     try {
       const { email, password, full_name, company } = request.body as {
         email: string;
@@ -49,7 +81,19 @@ export default async function authRoutes(fastify: FastifyInstance) {
   });
 
   // Get current user
-  fastify.get('/me', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/me', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['auth'],
+      description: 'Retorna os dados do usuário autenticado',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: UserSchema,
+        404: ErrorSchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const user = await authService.getCurrentUser(request.authToken!);
       
@@ -65,7 +109,17 @@ export default async function authRoutes(fastify: FastifyInstance) {
   });
 
   // Reset password
-  fastify.post('/reset-password', async (request, reply) => {
+  fastify.post('/reset-password', {
+    schema: {
+      tags: ['auth'],
+      description: 'Solicita envio de email para recuperação de senha',
+      body: ResetPasswordBodySchema,
+      response: {
+        200: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request, reply) => {
     try {
       const { email, redirectTo } = request.body as { email: string; redirectTo: string };
 
@@ -85,7 +139,19 @@ export default async function authRoutes(fastify: FastifyInstance) {
   });
 
   // Update password
-  fastify.post('/update-password', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.post('/update-password', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['auth'],
+      description: 'Atualiza a senha do usuário autenticado',
+      security: [{ bearerAuth: [] }],
+      body: UpdatePasswordBodySchema,
+      response: {
+        200: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { newPassword } = request.body as { newPassword: string };
 

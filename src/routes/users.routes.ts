@@ -1,9 +1,31 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as usersService from '../services/users.service';
+import { Type } from '@sinclair/typebox';
+import {
+  UserSchema,
+  UserProfileUpdateSchema,
+  UserRoleSchema,
+  ClientQuerySchema,
+  IdParamSchema,
+  ErrorSchema,
+  MessageSchema
+} from '../schemas/common.schemas';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
-  fastify.get('/', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['users'],
+      description: 'Lista todos os usuários, opcionalmente filtrados por empresa',
+      security: [{ bearerAuth: [] }],
+      querystring: ClientQuerySchema,
+      response: {
+        200: Type.Array(UserSchema),
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { company_id } = request.query as { company_id?: string };
       const users = await usersService.fetchUsers(request.authToken!, company_id);
@@ -13,7 +35,20 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.put('/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.put('/:id', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['users'],
+      description: 'Atualiza o perfil de um usuário',
+      security: [{ bearerAuth: [] }],
+      params: IdParamSchema,
+      body: UserProfileUpdateSchema,
+      response: {
+        200: UserSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { id } = request.params as { id: string };
       const userData = request.body as any;
@@ -24,7 +59,19 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.delete('/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.delete('/:id', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['users'],
+      description: 'Exclui um usuário',
+      security: [{ bearerAuth: [] }],
+      params: IdParamSchema,
+      response: {
+        200: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { id } = request.params as { id: string };
       await usersService.deleteUser(request.authToken!, id);
@@ -34,7 +81,20 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.post('/:id/role', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.post('/:id/role', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['users'],
+      description: 'Atualiza a função/role de um usuário',
+      security: [{ bearerAuth: [] }],
+      params: IdParamSchema,
+      body: UserRoleSchema,
+      response: {
+        200: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { id } = request.params as { id: string };
       const { role } = request.body as { role: 'admin' | 'user' | 'super_user' };

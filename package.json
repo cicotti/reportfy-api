@@ -24,6 +24,8 @@
     "@fastify/multipart": "^9.3.0",
     "@fastify/swagger": "^9.6.0",
     "@fastify/swagger-ui": "^5.2.3",
+    "@fastify/type-provider-typebox": "^6.1.0",
+    "@sinclair/typebox": "^0.34.41",
     "@supabase/supabase-js": "^2.81.1",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.2",

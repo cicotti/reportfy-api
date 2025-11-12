@@ -4,6 +4,7 @@ import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -26,7 +27,7 @@ const fastify = Fastify({
       }
     } : undefined
   }
-});
+}).withTypeProvider<TypeBoxTypeProvider>();
 
 async function start() {
   try {

@@ -1,9 +1,29 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as photosService from '../services/photos.service';
+import { Type } from '@sinclair/typebox';
+import {
+  PhotoSchema,
+  ProjectIdParamSchema,
+  IdParamSchema,
+  ErrorSchema,
+  MessageSchema
+} from '../schemas/common.schemas';
 
 export default async function photosRoutes(fastify: FastifyInstance) {
-  fastify.get('/:projectId', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/:projectId', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['photos'],
+      description: 'Lista todas as fotos de um projeto',
+      security: [{ bearerAuth: [] }],
+      params: ProjectIdParamSchema,
+      response: {
+        200: Type.Array(PhotoSchema),
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { projectId } = request.params as { projectId: string };
       const photos = await photosService.getProjectPhotos(request.authToken!, projectId);
@@ -13,7 +33,20 @@ export default async function photosRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.post('/:projectId', { preHandler: authenticate }, async (request: any, reply) => {
+  fastify.post('/:projectId', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['photos'],
+      description: 'Faz upload de uma foto para um projeto (multipart/form-data)',
+      security: [{ bearerAuth: [] }],
+      params: ProjectIdParamSchema,
+      consumes: ['multipart/form-data'],
+      response: {
+        201: PhotoSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: any, reply) => {
     try {
       const { projectId } = request.params as { projectId: string };
       const data = await request.file();
@@ -41,7 +74,20 @@ export default async function photosRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.delete('/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.delete('/:id', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['photos'],
+      description: 'Exclui uma foto',
+      security: [{ bearerAuth: [] }],
+      params: IdParamSchema,
+      response: {
+        200: MessageSchema,
+        400: ErrorSchema,
+        404: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { id } = request.params as { id: string };
       // Primeiro busca a foto para ter as informações necessárias

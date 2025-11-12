@@ -1,9 +1,29 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as companiesService from '../services/companies.service';
+import { Type } from '@sinclair/typebox';
+import {
+  CompanySchema,
+  CompanyInsertSchema,
+  CompanyUpdateSchema,
+  IdParamSchema,
+  ErrorSchema,
+  MessageSchema
+} from '../schemas/common.schemas';
 
 export default async function companiesRoutes(fastify: FastifyInstance) {
-  fastify.get('/', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.get('/', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['companies'],
+      description: 'Lista todas as empresas',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: Type.Array(CompanySchema),
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const companies = await companiesService.fetchCompanies(request.authToken!);
       return reply.send(companies);
@@ -12,7 +32,19 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.post('/', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.post('/', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['companies'],
+      description: 'Cria uma nova empresa',
+      security: [{ bearerAuth: [] }],
+      body: CompanyInsertSchema,
+      response: {
+        201: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const companyData = request.body as any;
       await companiesService.createCompany(request.authToken!, companyData);
@@ -22,7 +54,20 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.put('/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.put('/:id', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['companies'],
+      description: 'Atualiza uma empresa existente',
+      security: [{ bearerAuth: [] }],
+      params: IdParamSchema,
+      body: CompanyUpdateSchema,
+      response: {
+        200: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { id } = request.params as { id: string };
       const companyData = request.body as any;
@@ -33,7 +78,19 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.delete('/:id', { preHandler: authenticate }, async (request: AuthenticatedRequest, reply) => {
+  fastify.delete('/:id', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['companies'],
+      description: 'Exclui uma empresa',
+      security: [{ bearerAuth: [] }],
+      params: IdParamSchema,
+      response: {
+        200: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
     try {
       const { id } = request.params as { id: string };
       await companiesService.deleteCompany(request.authToken!, id);
