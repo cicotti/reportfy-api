@@ -2,6 +2,8 @@ import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -39,6 +41,53 @@ async function start() {
       limits: {
         fileSize: 10 * 1024 * 1024, // 10MB
       },
+    });
+
+    // Register Swagger
+    await fastify.register(swagger, {
+      openapi: {
+        info: {
+          title: 'Reportfy API',
+          description: 'API de gerenciamento de projetos',
+          version: '1.0.0',
+        },
+        servers: [
+          {
+            url: 'http://localhost:3000',
+            description: 'Servidor de desenvolvimento',
+          },
+          {
+            url: 'https://reportfy-api.vercel.app',
+            description: 'Servidor de produção',
+          },
+        ],
+        tags: [
+          { name: 'auth', description: 'Autenticação e gerenciamento de usuários' },
+          { name: 'companies', description: 'Gerenciamento de empresas' },
+          { name: 'clients', description: 'Gerenciamento de clientes' },
+          { name: 'users', description: 'Gerenciamento de usuários' },
+          { name: 'projects', description: 'Gerenciamento de projetos' },
+          { name: 'weather', description: 'Informações meteorológicas' },
+          { name: 'photos', description: 'Upload e gerenciamento de fotos' },
+        ],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+              bearerFormat: 'JWT',
+            },
+          },
+        },
+      },
+    });
+
+    // Register Swagger UI
+    await fastify.register(swaggerUi, {
+      routePrefix: '/docs',
+      uiConfig: { docExpansion: 'list', deepLinking: false },
+      staticCSP: true,
+      transformStaticCSP: (header) => header,
     });
 
     fastify.get('/', async () => {
