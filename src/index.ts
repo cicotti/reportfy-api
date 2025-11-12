@@ -17,10 +17,12 @@ const PORT = parseInt(process.env.PORT || '5173', 10); // Default to 5173 for Vi
 const fastify = Fastify({
   logger: { 
     level: process.env.LOG_LEVEL || 'info',
-    transport: {
+    transport: process.env.NODE_ENV === 'development' ? {
       target: 'pino-pretty',
-      options: { colorize: true }
-    }
+      options: {
+        colorize: true,
+      }
+    } : undefined
   }
 });
 
