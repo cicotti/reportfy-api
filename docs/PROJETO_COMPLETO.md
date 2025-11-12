@@ -105,11 +105,11 @@ GET    /health                      - Health check da API
 O arquivo `.env` foi criado e configurado com as credenciais do Supabase:
 
 ```env
-SUPABASE_URL=https://wlravwaueczozsprmuuo.supabase.co
-SUPABASE_ANON_KEY=eyJhbGci...
 PORT=3000
-NODE_ENV=development
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+LOG_LEVEL=info
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:8080
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_ANON_KEY=eyJhbGci...
 ```
 
 ### 5. Tecnologias Utilizadas
@@ -155,9 +155,9 @@ npm i -g vercel
 vercel login
 
 # Configurar variáveis de ambiente
+vercel env add ALLOWED_ORIGINS
 vercel env add SUPABASE_URL
 vercel env add SUPABASE_ANON_KEY
-vercel env add ALLOWED_ORIGINS
 
 # Deploy
 vercel --prod

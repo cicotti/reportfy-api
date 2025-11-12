@@ -12,7 +12,7 @@ import projectsRoutes from './routes/projects.routes';
 import weatherRoutes from './routes/weather.routes';
 import photosRoutes from './routes/photos.routes';
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT = parseInt(process.env.PORT || '5173', 10); // Default to 5173 for Vite compatibility
  
 const fastify = Fastify({
   logger: { level: process.env.LOG_LEVEL || 'info' }
@@ -39,8 +39,7 @@ async function start() {
     });
 
     fastify.get('/', async (request, reply) => {
-      //return { hello: 'What are you looking for?' }
-      return { hi: 'Fastify enable CORS' };
+      return { status: 'Reportfy API is accessible' };
     });
 
     // Register routes

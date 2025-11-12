@@ -121,10 +121,9 @@ vercel --prod
 
 **Variáveis de Ambiente:**
 ```env
+ALLOWED_ORIGINS=https://seu-frontend.vercel.app
 SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_ANON_KEY=xxx
-ALLOWED_ORIGINS=https://seu-frontend.vercel.app
-NODE_ENV=production
 ```
 
 ## 🔧 Desenvolvimento Local
