@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
-//import cors from '@fastify/cors';
+import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 
 // Routes
@@ -17,18 +17,14 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 const fastify = Fastify({
   logger: { level: process.env.LOG_LEVEL || 'info' }
 });
- 
-/*fastify.get('/', async (request, reply) => {
-  return { hi: 'Fastify log' }
-});*/
 
 async function start() {
   try {
     // Register CORS
-    /*await fastify.register(cors, {
+    await fastify.register(cors, {
       origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
       credentials: true,
-    });*/
+    });
 
     // Register multipart for file uploads
     await fastify.register(multipart, {
@@ -44,7 +40,7 @@ async function start() {
 
     fastify.get('/', async (request, reply) => {
       //return { hello: 'What are you looking for?' }
-      return { hi: 'Fastify register routes' };
+      return { hi: 'Fastify enable CORS' };
     });
 
     // Register routes
