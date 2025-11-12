@@ -1,5 +1,8 @@
 import { supabase, supabaseSaas, createAuthenticatedSaasClient } from '../lib/supabase';
+import { translateErrorCode, setLanguage } from 'supabase-error-translator-js';
 import { ApplicationError } from '../lib/errors';
+
+setLanguage("pt");
 
 export interface User {
   id: string;
@@ -126,7 +129,7 @@ export const signup = async (
     });
 
     if (error) {
-      throw new ApplicationError("Criação de conta", error.message);
+      throw new ApplicationError("Criação de conta", translateErrorCode(error.code, "auth"));
     }
 
     return { user: data.user?.id || null };
@@ -158,7 +161,7 @@ export const resetPassword = async (email: string, redirectTo: string) => {
       redirectTo
     });
     if (error) {      
-      throw new ApplicationError("Redefinição de senha", error.message);
+      throw new ApplicationError("Redefinição de senha", translateErrorCode(error.code, "auth"));
     }
   } catch (error) {
     console.error("Erro ao redefinir senha", error);
@@ -179,7 +182,7 @@ export const updatePassword = async (authToken: string, newPassword: string) => 
     });
     
     if (error) {
-      throw new ApplicationError("Atualização de senha", error.message);
+      throw new ApplicationError("Atualização de senha", translateErrorCode(error.code, "auth"));
     }
   } catch (error) {
     console.error("Erro ao atualizar senha", error);
