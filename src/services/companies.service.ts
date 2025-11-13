@@ -9,7 +9,7 @@ export const fetchCompanies = async (authToken: string): Promise<CompanyItem[]> 
     const { data, error } = await saasClient
       .from("companies")
       .select("*, profiles!profiles_company_id_fkey(count)")
-      .order("name", { ascending: false });
+      .order("name", { ascending: true });
     
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
