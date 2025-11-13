@@ -2,13 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as companiesService from '../services/companies.service';
 import { Type } from '@sinclair/typebox';
-import {
-  CompanySchema,
-  CompanyInsertSchema,
-  CompanyUpdateSchema,
-  IdParamSchema,
-  ErrorSchema,
-  MessageSchema
+import { CompanyItemSchema, CompanyInsertSchema, CompanyUpdateSchema, IdParamSchema, IdMessageSchema, ErrorSchema
 } from '../schemas/common.schemas';
 
 export default async function companiesRoutes(fastify: FastifyInstance) {
@@ -19,16 +13,16 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
       description: 'Lista todas as empresas',
       security: [{ bearerAuth: [] }],
       response: {
-        200: Type.Array(CompanySchema),
-        500: ErrorSchema
+        200: Type.Array(CompanyItemSchema),
+        400: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const companies = await companiesService.fetchCompanies(request.authToken!);
-      return reply.send(companies);
+      return reply.code(200).send(companies);
     } catch (error: any) {
-      return reply.code(500).send({ error: 'Erro ao buscar empresas' });
+      return reply.code(400).send({ type: error.type, message: error.message });
     }
   });
 
@@ -40,17 +34,17 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
       security: [{ bearerAuth: [] }],
       body: CompanyInsertSchema,
       response: {
-        201: MessageSchema,
+        201: IdMessageSchema,
         400: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const companyData = request.body as any;
-      await companiesService.createCompany(request.authToken!, companyData);
-      return reply.code(201).send({ message: 'Empresa criada com sucesso' });
+      var result = await companiesService.createCompany(request.authToken!, companyData);
+      return reply.code(201).send({ id: result.id, message: 'Empresa criada com sucesso' });
     } catch (error: any) {
-      return reply.code(400).send({ error: 'Erro ao criar empresa' });
+      return reply.code(400).send({ type: error.type, message: error.message });
     }
   });
 
@@ -63,7 +57,7 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
       params: IdParamSchema,
       body: CompanyUpdateSchema,
       response: {
-        200: MessageSchema,
+        200: IdMessageSchema,
         400: ErrorSchema
       }
     }
@@ -72,9 +66,9 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
       const { id } = request.params as { id: string };
       const companyData = request.body as any;
       await companiesService.updateCompany(request.authToken!, id, companyData);
-      return reply.send({ message: 'Empresa atualizada com sucesso' });
+      return reply.send({ id, message: 'Empresa atualizada com sucesso' });
     } catch (error: any) {
-      return reply.code(400).send({ error: 'Erro ao atualizar empresa' });
+      return reply.code(400).send({ type: error.type, message: error.message });
     }
   });
 
@@ -86,7 +80,7 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
       security: [{ bearerAuth: [] }],
       params: IdParamSchema,
       response: {
-        200: MessageSchema,
+        200: IdMessageSchema,
         400: ErrorSchema
       }
     }
@@ -94,9 +88,9 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     try {
       const { id } = request.params as { id: string };
       await companiesService.deleteCompany(request.authToken!, id);
-      return reply.send({ message: 'Empresa excluída com sucesso' });
+      return reply.send({ id, message: 'Empresa excluída com sucesso' });
     } catch (error: any) {
-      return reply.code(400).send({ error: 'Erro ao excluir empresa' });
+      return reply.code(400).send({ type: error.type, message: error.message });
     }
   });
 }

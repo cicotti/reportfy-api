@@ -106,7 +106,7 @@ async function start() {
 
     // Start server
     await fastify.listen({ port: PORT }).then(() => {
-      console.log(`🚀 Server is running:`);
+      console.log(`🚀 Server is running!`);
     });
   } catch (err) {
     fastify.log.error(err);

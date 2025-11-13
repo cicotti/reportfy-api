@@ -2,7 +2,11 @@ import { Type, Static } from '@sinclair/typebox';
 
 // ===== Common Schemas =====
 export const ErrorSchema = Type.Object({
-  error: Type.String(),
+  type: Type.Union([
+    Type.Literal('validation'),
+    Type.Literal('query'),
+    Type.Literal('critical'),
+  ]),
   message: Type.Optional(Type.String())
 });
 
@@ -12,6 +16,11 @@ export const MessageSchema = Type.Object({
 
 export const IdParamSchema = Type.Object({
   id: Type.String({ format: 'uuid' })
+});
+
+export const IdMessageSchema = Type.Object({
+  id: Type.String({ format: 'uuid' }),
+  message: Type.String()
 });
 
 // ===== User Schemas =====
@@ -77,31 +86,46 @@ export const SignupResponseSchema = Type.Object({
 });
 
 // ===== Company Schemas =====
-export const CompanySchema = Type.Object({
+export const CompanyItemSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),
   name: Type.String(),
   document: Type.String(),
   telephone: Type.String(),
-  address: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  city: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  state: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  zipcode: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+  plan: Type.Union([
+    Type.Literal('basic'),
+    Type.Literal('professional'),
+    Type.Literal('enterprise')
+  ]),
+  plan_expires_at: Type.Optional(Type.String({ format: 'date-time' })),
+  trial_ends_at: Type.Optional(Type.String({ format: 'date-time' })),
   is_active: Type.Boolean(),
   created_at: Type.String({ format: 'date-time' }),
-  updated_at: Type.Optional(Type.String({ format: 'date-time' }))
+  updated_at: Type.String({ format: 'date-time' }),
+  users_count: Type.Number()
 });
 
 export const CompanyInsertSchema = Type.Object({
   name: Type.String({ minLength: 1 }),
   document: Type.String({ minLength: 1 }),
   telephone: Type.String({ minLength: 1 }),
-  address: Type.Optional(Type.String()),
-  city: Type.Optional(Type.String()),
-  state: Type.Optional(Type.String()),
-  zipcode: Type.Optional(Type.String())
+  plan: Type.Union([
+    Type.Literal('basic'),
+    Type.Literal('professional'),
+    Type.Literal('enterprise')
+  ]),
+  is_active: Type.Boolean()
 });
 
-export const CompanyUpdateSchema = Type.Partial(CompanyInsertSchema);
+export const CompanyUpdateSchema = Type.Object({
+  name: Type.String({ minLength: 1 }),
+  telephone: Type.String({ minLength: 1 }),
+  plan: Type.Union([
+    Type.Literal('basic'),
+    Type.Literal('professional'),
+    Type.Literal('enterprise')
+  ]),
+  is_active: Type.Boolean()
+});  
 
 // ===== Client Schemas =====
 export const ClientSchema = Type.Object({
@@ -231,9 +255,11 @@ export type LoginBody = Static<typeof LoginBodySchema>;
 export type SignupBody = Static<typeof SignupBodySchema>;
 export type ResetPasswordBody = Static<typeof ResetPasswordBodySchema>;
 export type UpdatePasswordBody = Static<typeof UpdatePasswordBodySchema>;
-export type Company = Static<typeof CompanySchema>;
+
+export type CompanyItem = Static<typeof CompanyItemSchema>;
 export type CompanyInsert = Static<typeof CompanyInsertSchema>;
 export type CompanyUpdate = Static<typeof CompanyUpdateSchema>;
+
 export type Client = Static<typeof ClientSchema>;
 export type ClientInsert = Static<typeof ClientInsertSchema>;
 export type ClientUpdate = Static<typeof ClientUpdateSchema>;
