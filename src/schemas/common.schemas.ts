@@ -3,6 +3,8 @@ import { Type, Static } from '@sinclair/typebox';
 // ===== Common Schemas =====
 export const ErrorSchema = Type.Object({
   type: Type.Union([
+    Type.Literal('tenant_inactive'),
+    Type.Literal('authentication'),
     Type.Literal('validation'),
     Type.Literal('query'),
     Type.Literal('critical'),
@@ -23,10 +25,23 @@ export const IdMessageSchema = Type.Object({
   message: Type.String()
 });
 
+// ===== Translation Schemas =====
+export const TranslationItemSchema = Type.Object({
+  id: Type.String({ format: 'uuid' }),
+  key: Type.String(),
+  language: Type.String(),
+  value: Type.String(),  
+  created_at: Type.String({ format: 'date-time' })
+});
+
+// ===== Company Schemas =====
+
+
+
 // ===== User Schemas =====
 export const UserSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),
-  company_id: Type.Union([Type.String({ format: 'uuid' }), Type.Null()]),
+  company_id: Type.Optional(Type.String({ format: 'uuid' })),
   email: Type.String({ format: 'email' }),
   name: Type.String(),
   role: Type.Union([
@@ -38,7 +53,7 @@ export const UserSchema = Type.Object({
 });
 
 export const UserProfileUpdateSchema = Type.Object({
-  full_name: Type.Optional(Type.String()),
+  name: Type.Optional(Type.String()),
   avatar_url: Type.Optional(Type.Union([Type.String({ format: 'uri' }), Type.Null()]))
 });
 
@@ -51,81 +66,7 @@ export const UserRoleSchema = Type.Object({
 });
 
 // ===== Auth Schemas =====
-export const LoginBodySchema = Type.Object({
-  email: Type.String({ format: 'email' }),
-  password: Type.String({ minLength: 6 })
-});
 
-export const SignupBodySchema = Type.Object({
-  email: Type.String({ format: 'email' }),
-  password: Type.String({ minLength: 6 }),
-  full_name: Type.String({ minLength: 1 }),
-  company: Type.Object({
-    name: Type.String({ minLength: 1 }),
-    document: Type.String({ minLength: 1 }),
-    telephone: Type.String({ minLength: 1 })
-  })
-});
-
-export const ResetPasswordBodySchema = Type.Object({
-  email: Type.String({ format: 'email' }),
-  redirectTo: Type.Optional(Type.String({ format: 'uri' }))
-});
-
-export const UpdatePasswordBodySchema = Type.Object({
-  newPassword: Type.String({ minLength: 6 })
-});
-
-export const LoginResponseSchema = Type.Object({
-  user: Type.Union([UserSchema, Type.Null()]),
-  session: Type.Any()
-});
-
-export const SignupResponseSchema = Type.Object({
-  user: Type.Union([Type.String(), Type.Null()])
-});
-
-// ===== Company Schemas =====
-export const CompanyItemSchema = Type.Object({
-  id: Type.String({ format: 'uuid' }),
-  name: Type.String(),
-  document: Type.String(),
-  telephone: Type.String(),
-  plan: Type.Union([
-    Type.Literal('basic'),
-    Type.Literal('professional'),
-    Type.Literal('enterprise')
-  ]),
-  plan_expires_at: Type.Optional(Type.String({ format: 'date-time' })),
-  trial_ends_at: Type.Optional(Type.String({ format: 'date-time' })),
-  is_active: Type.Boolean(),
-  created_at: Type.String({ format: 'date-time' }),
-  updated_at: Type.String({ format: 'date-time' }),
-  users_count: Type.Number()
-});
-
-export const CompanyInsertSchema = Type.Object({
-  name: Type.String({ minLength: 1 }),
-  document: Type.String({ minLength: 1 }),
-  telephone: Type.String({ minLength: 1 }),
-  plan: Type.Union([
-    Type.Literal('basic'),
-    Type.Literal('professional'),
-    Type.Literal('enterprise')
-  ]),
-  is_active: Type.Boolean()
-});
-
-export const CompanyUpdateSchema = Type.Object({
-  name: Type.String({ minLength: 1 }),
-  telephone: Type.String({ minLength: 1 }),
-  plan: Type.Union([
-    Type.Literal('basic'),
-    Type.Literal('professional'),
-    Type.Literal('enterprise')
-  ]),
-  is_active: Type.Boolean()
-});  
 
 // ===== Client Schemas =====
 export const ClientSchema = Type.Object({
@@ -250,16 +191,6 @@ export const PhotoSchema = Type.Object({
 });
 
 // Type exports for TypeScript
-export type User = Static<typeof UserSchema>;
-export type LoginBody = Static<typeof LoginBodySchema>;
-export type SignupBody = Static<typeof SignupBodySchema>;
-export type ResetPasswordBody = Static<typeof ResetPasswordBodySchema>;
-export type UpdatePasswordBody = Static<typeof UpdatePasswordBodySchema>;
-
-export type CompanyItem = Static<typeof CompanyItemSchema>;
-export type CompanyInsert = Static<typeof CompanyInsertSchema>;
-export type CompanyUpdate = Static<typeof CompanyUpdateSchema>;
-
 export type Client = Static<typeof ClientSchema>;
 export type ClientInsert = Static<typeof ClientInsertSchema>;
 export type ClientUpdate = Static<typeof ClientUpdateSchema>;

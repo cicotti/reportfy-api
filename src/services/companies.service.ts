@@ -1,9 +1,9 @@
 import { createAuthenticatedSaasClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { CompanyItem, CompanyInsert, CompanyUpdate, IdParamSchema } from '@/schemas/common.schemas';
+import { CompanyListResult, CompanyInsertBody, CompanyUpdateBody } from '@/schemas/companies.schema';
 import { ApiError } from '../lib/errors';
 
-export const fetchCompanies = async (authToken: string): Promise<CompanyItem[]> => {
+export const fetchCompanies = async (authToken: string): Promise<CompanyListResult[]> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
     const { data, error } = await saasClient
@@ -13,7 +13,7 @@ export const fetchCompanies = async (authToken: string): Promise<CompanyItem[]> 
     
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
-    const companiesWithCount = (data || []).map((company: any) => ({ ...company, users_count: company.profiles?.[0]?.count ?? 0 })) as CompanyItem[];
+    const companiesWithCount = (data || []).map((company: any) => ({ ...company, users_count: company.profiles?.[0]?.count ?? 0 })) as CompanyListResult[];
 
     return companiesWithCount;
   } catch (error: any) {
@@ -22,7 +22,7 @@ export const fetchCompanies = async (authToken: string): Promise<CompanyItem[]> 
   }
 };
 
-export const createCompany = async (authToken: string, data: CompanyInsert): Promise<{ id: string }> => {
+export const createCompany = async (authToken: string, data: CompanyInsertBody): Promise<{ id: string }> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
     const { data: result, error } = await saasClient
@@ -39,7 +39,7 @@ export const createCompany = async (authToken: string, data: CompanyInsert): Pro
   }
 };
 
-export const updateCompany = async (authToken: string, id: string, data: CompanyUpdate): Promise<void> => {
+export const updateCompany = async (authToken: string, id: string, data: CompanyUpdateBody): Promise<void> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
     const { data: result, error } = await saasClient

@@ -1,50 +1,41 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as authService from '../services/auth.service';
-import {
-  LoginBodySchema,
-  LoginResponseSchema,
-  SignupBodySchema,
-  SignupResponseSchema,
-  ResetPasswordBodySchema,
-  UpdatePasswordBodySchema,
-  UserSchema,
-  ErrorSchema,
-  MessageSchema
-} from '../schemas/common.schemas';
+import { LoginBodySchema, UserSessionSchema, ProfileSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema } from '../schemas/auth.schema';
+import { IdMessageSchema, ErrorSchema, MessageSchema } from '../schemas/common.schemas';
 
 export default async function authRoutes(fastify: FastifyInstance) {
+  fastify.get('/check-rsl', { preHandler: authenticate},
+  async (request: AuthenticatedRequest, reply) => {
+    try {
+      const result = await authService.checkRsl(request.authToken!);
+      return reply.code(200).send(result);
+    } catch (error: any) {
+      return reply.code(400).send({ type: error.type, message: error.message });
+    }    
+  });  
+
   // Login
   fastify.post('/login', {
     schema: {
       tags: ['auth'],
-      description: 'Realiza login do usuário e retorna dados do usuário e sessão',
+      description: 'Realiza login do usuário e retorna dados da sessão',
       body: LoginBodySchema,
       response: {
-        200: LoginResponseSchema,
-        400: ErrorSchema,
-        401: ErrorSchema
+        200: UserSessionSchema,
+        400: ErrorSchema
       }
     }
   }, async (request, reply) => {
     try {
-      const { email, password } = request.body as { email: string; password: string };
-      
-      if (!email || !password) {
-        return reply.code(400).send({ error: 'Email e senha são obrigatórios' });
-      }
-
-      const result = await authService.login(email, password);
-      return reply.send(result);
+      const data = request.body as any;
+      const result = await authService.login(data);
+      return reply.code(200).send(result);
     } catch (error: any) {
-      console.error('Login error:', error);
-      return reply.code(401).send({ 
-        error: error.title || 'Erro ao fazer login',
-        message: error.description || error.message 
-      });
+      return reply.code(400).send({ type: error.type, message: error.message });
     }
   });
-
+  
   // Signup
   fastify.post('/signup', {
     schema: {
@@ -52,31 +43,17 @@ export default async function authRoutes(fastify: FastifyInstance) {
       description: 'Cria uma nova conta de usuário e empresa',
       body: SignupBodySchema,
       response: {
-        200: SignupResponseSchema,
+        201: IdMessageSchema,
         400: ErrorSchema
       }
     }
   }, async (request, reply) => {
     try {
-      const { email, password, full_name, company } = request.body as {
-        email: string;
-        password: string;
-        full_name: string;
-        company: { name: string; document: string; telephone: string };
-      };
-
-      if (!email || !password || !full_name || !company) {
-        return reply.code(400).send({ error: 'Dados incompletos' });
-      }
-
-      const result = await authService.signup(email, password, full_name, company);
-      return reply.send(result);
+      const data = request.body as any;
+      const result = await authService.signup(data);
+      return reply.code(201).send({ id: result.id, message: 'Conta criada com sucesso' });
     } catch (error: any) {
-      console.error('Signup error:', error);
-      return reply.code(400).send({ 
-        error: error.title || 'Erro ao criar conta',
-        message: error.description || error.message 
-      });
+      return reply.code(400).send({ type: error.type, message: error.message });
     }
   });
 
@@ -88,23 +65,16 @@ export default async function authRoutes(fastify: FastifyInstance) {
       description: 'Retorna os dados do usuário autenticado',
       security: [{ bearerAuth: [] }],
       response: {
-        200: UserSchema,
-        404: ErrorSchema,
+        200: ProfileSchema,
         500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const user = await authService.getCurrentUser(request.authToken!);
-      
-      if (!user) {
-        return reply.code(404).send({ error: 'Usuário não encontrado' });
-      }
-
-      return reply.send(user);
+      return reply.code(200).send(user);
     } catch (error: any) {
-      console.error('Get current user error:', error);
-      return reply.code(500).send({ error: 'Erro ao buscar usuário' });
+      return reply.code(400).send({ type: error.type, message: error.message });
     }
   });
 
@@ -121,20 +91,11 @@ export default async function authRoutes(fastify: FastifyInstance) {
     }
   }, async (request, reply) => {
     try {
-      const { email, redirectTo } = request.body as { email: string; redirectTo: string };
-
-      if (!email) {
-        return reply.code(400).send({ error: 'Email é obrigatório' });
-      }
-
-      await authService.resetPassword(email, redirectTo);
-      return reply.send({ message: 'Email de recuperação enviado' });
+      const data = request.body as any;      
+      await authService.resetPassword(data);
+      return reply.code(200).send({ message: 'Email de recuperação enviado' });
     } catch (error: any) {
-      console.error('Reset password error:', error);
-      return reply.code(400).send({ 
-        error: error.title || 'Erro ao resetar senha',
-        message: error.description || error.message 
-      });
+      return reply.code(400).send({ type: error.type, message: error.message });
     }
   });
 
@@ -153,20 +114,32 @@ export default async function authRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { newPassword } = request.body as { newPassword: string };
-
-      if (!newPassword) {
-        return reply.code(400).send({ error: 'Nova senha é obrigatória' });
-      }
-
-      await authService.updatePassword(request.authToken!, newPassword);
-      return reply.send({ message: 'Senha atualizada com sucesso' });
+      const data = request.body as any;
+      await authService.updatePassword(request.authToken!, data);
+      return reply.code(200).send({ message: 'Senha atualizada com sucesso' });
     } catch (error: any) {
-      console.error('Update password error:', error);
-      return reply.code(400).send({ 
-        error: error.title || 'Erro ao atualizar senha',
-        message: error.description || error.message 
-      });
+      return reply.code(400).send({ type: error.type, message: error.message });
+    }
+  });
+
+  // Check Tenant
+  fastify.get('/check-tenant', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['auth'],
+      description: 'Verifica se o tenant está ativo',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: MessageSchema,
+        400: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
+    try {      
+      await authService.checkTenant(request.authToken!);
+      return reply.code(200).send({ message: 'Tenant está ativo' });
+    } catch (error: any) {
+      return reply.code(400).send({ type: error.type, message: error.message });
     }
   });
 }

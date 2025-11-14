@@ -25,3 +25,12 @@ export class ValidationError extends Error {
     this.name = 'ValidationError';
   }
 }
+
+export class ApiError extends Error {
+  type: string;
+  
+  constructor(type: 'tenant_inactive' | 'validation' | 'query' | 'authentication' | 'critical' = 'critical', message: string) {        
+    super(message);
+    this.type = type;
+  }
+}

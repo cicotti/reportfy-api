@@ -8,7 +8,7 @@ export interface UserProfile {
   company_id: string;
   company_name: string;
   email: string;
-  full_name: string;
+  name: string;
   created_at: string;
   updated_at: string;
   company?: { id: string; name: string } | null;
@@ -22,7 +22,7 @@ export const fetchUsers = async (authToken: string, companyId?: string): Promise
     let query = saasClient
       .from("profiles")
       .select("*, company:companies(name, id), user_roles(role)")
-      .order("full_name", { ascending: true });
+      .order("name", { ascending: true });
 
     if (companyId) query = query.eq("company_id", companyId);
 
