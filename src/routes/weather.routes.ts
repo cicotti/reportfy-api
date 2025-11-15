@@ -8,7 +8,7 @@ import {
   ProjectIdParamSchema,
   ErrorSchema,
   MessageSchema
-} from '../schemas/common.schemas';
+} from '../schemas/common.schema';
 
 export default async function weatherRoutes(fastify: FastifyInstance) {
   fastify.get('/:projectId', {

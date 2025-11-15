@@ -2,15 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as projectsService from '../services/projects.service';
 import { Type } from '@sinclair/typebox';
-import {
-  ProjectWithClientSchema,
-  ProjectInsertSchema,
-  ProjectUpdateSchema,
-  ProjectQuerySchema,
-  IdParamSchema,
-  ErrorSchema,
-  MessageSchema
-} from '../schemas/common.schemas';
+import { ProjectWithClientSchema, ProjectInsertSchema, ProjectUpdateSchema, ProjectQuerySchema } from '../schemas/common.schema';
+import { IdMessageSchema, ErrorSchema, MessageSchema } from '../schemas/common.schema';
 
 export default async function projectsRoutes(fastify: FastifyInstance) {
   // Get all projects
@@ -44,7 +37,7 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
       tags: ['projects'],
       description: 'Busca um projeto específico por ID',
       security: [{ bearerAuth: [] }],
-      params: IdParamSchema,
+      params: IdMessageSchema,
       response: {
         200: ProjectWithClientSchema,
         404: ErrorSchema,
@@ -98,7 +91,7 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
       tags: ['projects'],
       description: 'Atualiza um projeto existente',
       security: [{ bearerAuth: [] }],
-      params: IdParamSchema,
+      params: IdMessageSchema,
       body: ProjectUpdateSchema,
       response: {
         200: MessageSchema,
@@ -124,7 +117,7 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
       tags: ['projects'],
       description: 'Exclui um projeto (soft delete)',
       security: [{ bearerAuth: [] }],
-      params: IdParamSchema,
+      params: IdMessageSchema,
       response: {
         200: MessageSchema,
         400: ErrorSchema

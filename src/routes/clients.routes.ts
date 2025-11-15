@@ -1,37 +1,32 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as clientsService from '../services/clients.service';
+import { ClientItemSchema, ClientInsertSchema, ClientUpdateSchema, ClientDeleteSchema, ClientQuerySchema, ClientQuery } from '../schemas/clients.schema';
+import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
+import { checkTenant } from '../services/auth.service';
 import { Type } from '@sinclair/typebox';
-import {
-  ClientSchema,
-  ClientInsertSchema,
-  ClientUpdateSchema,
-  ClientQuerySchema,
-  IdParamSchema,
-  ErrorSchema,
-  MessageSchema
-} from '../schemas/common.schemas';
 
 export default async function clientsRoutes(fastify: FastifyInstance) {
   fastify.get('/', {
     preHandler: authenticate,
     schema: {
       tags: ['clients'],
-      description: 'Lista todos os clientes, opcionalmente filtrados por empresa',
+      description: 'Lista todos os clientes',
       security: [{ bearerAuth: [] }],
       querystring: ClientQuerySchema,
       response: {
-        200: Type.Array(ClientSchema),
+        200: Type.Array(ClientItemSchema),
         500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { company_id } = request.query as { company_id?: string };
-      const clients = await clientsService.fetchClients(request.authToken!, company_id);
-      return reply.send(clients);
+      await checkTenant(request.authToken!);
+      const query = request.query as ClientQuery;
+      const result = await clientsService.fetchClients(request.authToken!, query);
+      return reply.code(200).send(result);
     } catch (error: any) {
-      return reply.code(500).send({ error: 'Erro ao buscar clientes' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
@@ -43,63 +38,64 @@ export default async function clientsRoutes(fastify: FastifyInstance) {
       security: [{ bearerAuth: [] }],
       body: ClientInsertSchema,
       response: {
-        201: MessageSchema,
-        400: ErrorSchema
+        201: IdMessageSchema,
+        500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const clientData = request.body as any;
-      await clientsService.createClient(request.authToken!, clientData);
-      return reply.code(201).send({ message: 'Cliente criado com sucesso' });
+      await checkTenant(request.authToken!);
+      const data = request.body as any;
+      const result = await clientsService.createClient(request.authToken!, data);
+      return reply.code(201).send({ id: result.id, message: 'Cliente criado com sucesso' });
     } catch (error: any) {
-      return reply.code(400).send({ error: 'Erro ao criar cliente' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
-  fastify.put('/:id', {
+  fastify.put('/', {
     preHandler: authenticate,
     schema: {
       tags: ['clients'],
       description: 'Atualiza um cliente existente',
       security: [{ bearerAuth: [] }],
-      params: IdParamSchema,
       body: ClientUpdateSchema,
       response: {
-        200: MessageSchema,
-        400: ErrorSchema
+        200: IdMessageSchema,
+        500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { id } = request.params as { id: string };
-      const clientData = request.body as any;
-      await clientsService.updateClient(request.authToken!, id, clientData);
-      return reply.send({ message: 'Cliente atualizado com sucesso' });
+      await checkTenant(request.authToken!);
+      const data = request.body as any;
+      await clientsService.updateClient(request.authToken!, data);
+      return reply.code(200).send({ id: data.id, message: 'Cliente atualizado com sucesso' });
     } catch (error: any) {
-      return reply.code(400).send({ error: 'Erro ao atualizar cliente' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
-  fastify.delete('/:id', {
+  fastify.delete('/', {
     preHandler: authenticate,
     schema: {
       tags: ['clients'],
-      description: 'Exclui um cliente (soft delete)',
+      description: 'Exclui um cliente',
       security: [{ bearerAuth: [] }],
-      params: IdParamSchema,
+      body: ClientDeleteSchema,
       response: {
-        200: MessageSchema,
-        400: ErrorSchema
+        200: IdMessageSchema,
+        500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { id } = request.params as { id: string };
-      await clientsService.softDeleteClient(request.authToken!, id);
-      return reply.send({ message: 'Cliente excluído com sucesso' });
+      await checkTenant(request.authToken!);
+      const data = request.body as any;
+      await clientsService.deleteClient(request.authToken!, data);
+      return reply.code(200).send({ id: data.id, message: 'Cliente excluído com sucesso' });
     } catch (error: any) {
-      return reply.code(400).send({ error: 'Erro ao excluir cliente' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 }

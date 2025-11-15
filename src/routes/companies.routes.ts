@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as companiesService from '../services/companies.service';
-import { CompanyItemSchema, CompanyInsertSchema, CompanyUpdateSchema } from '../schemas/companies.schema';
-import { IdParamSchema, IdMessageSchema, ErrorSchema } from '../schemas/common.schemas';
+import { CompanyItemSchema, CompanyInsertSchema, CompanyUpdateSchema, CompanyDeleteSchema } from '../schemas/companies.schema';
+import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
 import { checkTenant } from '../services/auth.service';
 import { Type } from '@sinclair/typebox';
 
@@ -21,8 +21,8 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       await checkTenant(request.authToken!);
-      const companies = await companiesService.fetchCompanies(request.authToken!);
-      return reply.code(200).send(companies);
+      const result = await companiesService.fetchCompanies(request.authToken!);
+      return reply.code(200).send(result);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
@@ -43,21 +43,20 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       await checkTenant(request.authToken!);
-      const companyData = request.body as any;
-      var result = await companiesService.createCompany(request.authToken!, companyData);
+      const data = request.body as any;
+      var result = await companiesService.createCompany(request.authToken!, data);
       return reply.code(201).send({ id: result.id, message: 'Empresa criada com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
-  fastify.put('/:id', {
+  fastify.put('/', {
     preHandler: authenticate,
     schema: {
       tags: ['companies'],
       description: 'Atualiza uma empresa existente',
       security: [{ bearerAuth: [] }],
-      params: IdParamSchema,
       body: CompanyUpdateSchema,
       response: {
         200: IdMessageSchema,
@@ -67,22 +66,21 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       await checkTenant(request.authToken!);
-      const { id } = request.params as { id: string };
-      const companyData = request.body as any;
-      await companiesService.updateCompany(request.authToken!, id, companyData);
-      return reply.code(200).send({ id, message: 'Empresa atualizada com sucesso' });
+      const data = request.body as any;
+      await companiesService.updateCompany(request.authToken!, data);
+      return reply.code(200).send({ id: data.id, message: 'Empresa atualizada com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
-  fastify.delete('/:id', {
+  fastify.delete('/', {
     preHandler: authenticate,
     schema: {
       tags: ['companies'],
       description: 'Exclui uma empresa',
       security: [{ bearerAuth: [] }],
-      params: IdParamSchema,
+      body: CompanyDeleteSchema,
       response: {
         200: IdMessageSchema,
         500: ErrorSchema
@@ -91,9 +89,9 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       await checkTenant(request.authToken!);
-      const { id } = request.params as { id: string };
-      await companiesService.deleteCompany(request.authToken!, id);
-      return reply.code(200).send({ id, message: 'Empresa excluída com sucesso' });
+      const data = request.body as any;
+      await companiesService.deleteCompany(request.authToken!, data);
+      return reply.code(200).send({ id: data.id, message: 'Empresa excluída com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }

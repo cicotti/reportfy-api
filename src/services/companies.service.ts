@@ -1,6 +1,6 @@
 import { createAuthenticatedSaasClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { CompanyListResult, CompanyInsertBody, CompanyUpdateBody } from '@/schemas/companies.schema';
+import { CompanyListResult, CompanyInsertBody, CompanyUpdateBody, CompanyDeleteBody } from '@/schemas/companies.schema';
 import { ApiError } from '../lib/errors';
 
 export const fetchCompanies = async (authToken: string): Promise<CompanyListResult[]> => {
@@ -13,7 +13,10 @@ export const fetchCompanies = async (authToken: string): Promise<CompanyListResu
     
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
-    const companiesWithCount = (data || []).map((company: any) => ({ ...company, users_count: company.profiles?.[0]?.count ?? 0 })) as CompanyListResult[];
+    const companiesWithCount = (data || []).map((company: any) => ({ 
+      ...company, 
+      users_count: company.profiles?.[0]?.count ?? 0 
+    })) as CompanyListResult[];
 
     return companiesWithCount;
   } catch (error: any) {
@@ -39,13 +42,14 @@ export const createCompany = async (authToken: string, data: CompanyInsertBody):
   }
 };
 
-export const updateCompany = async (authToken: string, id: string, data: CompanyUpdateBody): Promise<void> => {
+export const updateCompany = async (authToken: string, data: CompanyUpdateBody): Promise<void> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
-    const { data: result, error } = await saasClient
+    
+    const { error } = await saasClient
       .from("companies")
       .update(data)
-      .eq("id", id);
+      .eq("id", data.id);
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
   } catch (error: any) {
@@ -54,13 +58,13 @@ export const updateCompany = async (authToken: string, id: string, data: Company
   }
 };
 
-export const deleteCompany = async (authToken: string, id: string): Promise<void> => {
+export const deleteCompany = async (authToken: string, data: CompanyDeleteBody): Promise<void> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
     const { error } = await saasClient
       .from("companies")
-      .delete()
-      .eq("id", id);
+      .update({ is_active: false, is_soft_deleted: true })
+      .eq("id", data.id);
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
   } catch (error: any) {

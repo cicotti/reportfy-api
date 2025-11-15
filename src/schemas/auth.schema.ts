@@ -1,4 +1,5 @@
 import { Type, Static } from '@sinclair/typebox';
+import { RoleSchema } from './common.schema';
 
 export const LoginBodySchema = Type.Object({
   email: Type.String({ format: 'email', maxLength: 100 }),
@@ -22,11 +23,7 @@ export const ProfileSchema = Type.Object({
   company_id: Type.Optional(Type.Union([Type.String({ format: 'uuid' }), Type.Null()])),
   email: Type.String({ format: 'email' }),
   name: Type.String(),
-  role: Type.Union([
-    Type.Literal('admin'),
-    Type.Literal('user'),
-    Type.Literal('super_user')
-  ]),
+  role: RoleSchema,
   avatar_url: Type.Optional(Type.String({ format: 'uri' }))
 });
 

@@ -12,12 +12,27 @@ export const ErrorSchema = Type.Object({
   message: Type.Optional(Type.String())
 });
 
+export const PlanSchema = Type.Union([
+  Type.Literal('basic'),
+  Type.Literal('professional'),
+  Type.Literal('enterprise')
+]);
+
+export const RoleSchema = Type.Union([
+  Type.Literal('admin'),
+  Type.Literal('user'),
+  Type.Literal('super_user')
+]);
+
+export const ProjectStatusSchema = Type.Union([
+  Type.Literal('planning'),
+  Type.Literal('in_progress'),
+  Type.Literal('completed'),
+  Type.Literal('on_hold')
+]);
+
 export const MessageSchema = Type.Object({
   message: Type.String()
-});
-
-export const IdParamSchema = Type.Object({
-  id: Type.String({ format: 'uuid' })
 });
 
 export const IdMessageSchema = Type.Object({
@@ -34,75 +49,6 @@ export const TranslationItemSchema = Type.Object({
   created_at: Type.String({ format: 'date-time' })
 });
 
-// ===== Company Schemas =====
-
-
-
-// ===== User Schemas =====
-export const UserSchema = Type.Object({
-  id: Type.String({ format: 'uuid' }),
-  company_id: Type.Optional(Type.String({ format: 'uuid' })),
-  email: Type.String({ format: 'email' }),
-  name: Type.String(),
-  role: Type.Union([
-    Type.Literal('admin'),
-    Type.Literal('user'),
-    Type.Literal('super_user')
-  ]),
-  avatar_url: Type.Optional(Type.Union([Type.String({ format: 'uri' }), Type.Null()]))
-});
-
-export const UserProfileUpdateSchema = Type.Object({
-  name: Type.Optional(Type.String()),
-  avatar_url: Type.Optional(Type.Union([Type.String({ format: 'uri' }), Type.Null()]))
-});
-
-export const UserRoleSchema = Type.Object({
-  role: Type.Union([
-    Type.Literal('admin'),
-    Type.Literal('user'),
-    Type.Literal('super_user')
-  ])
-});
-
-// ===== Auth Schemas =====
-
-
-// ===== Client Schemas =====
-export const ClientSchema = Type.Object({
-  id: Type.String({ format: 'uuid' }),
-  company_id: Type.String({ format: 'uuid' }),
-  name: Type.String(),
-  email: Type.Optional(Type.Union([Type.String({ format: 'email' }), Type.Null()])),
-  telephone: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  document: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  address: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  city: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  state: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  zipcode: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  is_active: Type.Boolean(),
-  created_at: Type.String({ format: 'date-time' }),
-  updated_at: Type.Optional(Type.String({ format: 'date-time' }))
-});
-
-export const ClientInsertSchema = Type.Object({
-  company_id: Type.String({ format: 'uuid' }),
-  name: Type.String({ minLength: 1 }),
-  email: Type.Optional(Type.String({ format: 'email' })),
-  telephone: Type.Optional(Type.String()),
-  document: Type.Optional(Type.String()),
-  address: Type.Optional(Type.String()),
-  city: Type.Optional(Type.String()),
-  state: Type.Optional(Type.String()),
-  zipcode: Type.Optional(Type.String())
-});
-
-export const ClientUpdateSchema = Type.Partial(Type.Omit(ClientInsertSchema, ['company_id']));
-
-export const ClientQuerySchema = Type.Object({
-  company_id: Type.Optional(Type.String({ format: 'uuid' }))
-});
-
 // ===== Project Schemas =====
 export const ProjectSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),
@@ -110,12 +56,7 @@ export const ProjectSchema = Type.Object({
   title: Type.String(),
   description: Type.Optional(Type.Union([Type.String(), Type.Null()])),
   location: Type.Optional(Type.Any()), // JSONB
-  status: Type.Union([
-    Type.Literal('planning'),
-    Type.Literal('in_progress'),
-    Type.Literal('completed'),
-    Type.Literal('on_hold')
-  ]),
+  status: ProjectStatusSchema,
   start_date: Type.Optional(Type.Union([Type.String({ format: 'date' }), Type.Null()])),
   end_date: Type.Optional(Type.Union([Type.String({ format: 'date' }), Type.Null()])),
   budget: Type.Optional(Type.Union([Type.Number(), Type.Null()])),
@@ -140,12 +81,7 @@ export const ProjectInsertSchema = Type.Object({
   title: Type.String({ minLength: 1 }),
   description: Type.Optional(Type.String()),
   location: Type.Optional(Type.Any()),
-  status: Type.Optional(Type.Union([
-    Type.Literal('planning'),
-    Type.Literal('in_progress'),
-    Type.Literal('completed'),
-    Type.Literal('on_hold')
-  ])),
+  status: ProjectStatusSchema,
   start_date: Type.Optional(Type.String({ format: 'date' })),
   end_date: Type.Optional(Type.String({ format: 'date' })),
   budget: Type.Optional(Type.Number({ minimum: 0 }))
@@ -191,9 +127,6 @@ export const PhotoSchema = Type.Object({
 });
 
 // Type exports for TypeScript
-export type Client = Static<typeof ClientSchema>;
-export type ClientInsert = Static<typeof ClientInsertSchema>;
-export type ClientUpdate = Static<typeof ClientUpdateSchema>;
 export type Project = Static<typeof ProjectSchema>;
 export type ProjectInsert = Static<typeof ProjectInsertSchema>;
 export type ProjectUpdate = Static<typeof ProjectUpdateSchema>;

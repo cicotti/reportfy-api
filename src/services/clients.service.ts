@@ -1,37 +1,9 @@
 import { createAuthenticatedSaasClient } from '../lib/supabase';
-import { ApplicationError } from '../lib/errors';
+import { translateErrorCode } from 'supabase-error-translator-js';
+import { ClientListResult, ClientInsertBody, ClientUpdateBody, ClientDeleteBody, ClientQuery } from '../schemas/clients.schema';
+import { ApiError } from '../lib/errors';
 
-export interface Client {
-  id: string;
-  company_id: string;
-  name: string;
-  document: string | null;
-  telephone: string | null;
-  contact: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  company?: { id: string; name: string } | null;
-}
-
-export interface ClientInsertData {
-  company_id: string;
-  name: string;
-  document?: string;
-  telephone?: string;
-  contact?: string;
-  is_active?: boolean;
-}
-
-export interface ClientUpdateData {
-  name?: string;
-  document?: string;
-  telephone?: string;
-  contact?: string;
-  is_active?: boolean;
-}
-
-export const fetchClients = async (authToken: string, companyId?: string): Promise<Client[]> => {
+export const fetchClients = async (authToken: string, queryString?: ClientQuery): Promise<ClientListResult[]> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
     
@@ -41,65 +13,73 @@ export const fetchClients = async (authToken: string, companyId?: string): Promi
       .eq("is_soft_deleted", false)
       .order("name", { ascending: true });
 
-    if (companyId) {
-      query = query.eq("company_id", companyId);
+    if (queryString && queryString.company_id) {
+      query = query.eq("company_id", queryString.company_id!);
     }
 
     const { data, error } = await query;
-    if (error) throw error;
+    
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
     const clientsWithCompany = (data || []).map((client: any) => ({
       ...client,
       company: client.company ?? null,
-    })) as Client[];
+    })) as ClientListResult[];
 
     return clientsWithCompany;
-  } catch (err: any) {
-    console.error("clients.fetchClients error:", err);
-    throw new ApplicationError("Erro ao carregar clientes", err?.message ?? "Erro inesperado", true);
+  } catch (error: any) {
+    console.error("clients.fetchClients error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
 
-export const createClient = async (authToken: string, data: ClientInsertData): Promise<void> => {
+export const createClient = async (authToken: string, data: ClientInsertBody): Promise<{ id: string }> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
     
-    const { error } = await saasClient.from("clients").insert([data]);
-    if (error) throw error;
-  } catch (err: any) {
-    console.error("clients.createClient error:", err);
-    throw new ApplicationError("Erro ao criar cliente", err?.message ?? "Erro inesperado", true);
+    const { data: result, error } = await saasClient
+      .from("clients")
+      .insert([data])
+      .select("id")
+      .single();
+    
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
+    
+    return { id: result.id };
+  } catch (error: any) {
+    console.error("clients.createClient error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
 
-export const updateClient = async (authToken: string, id: string, data: ClientUpdateData): Promise<void> => {
+export const updateClient = async (authToken: string, data: ClientUpdateBody): Promise<void> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
     
     const { error } = await saasClient
       .from("clients")
       .update(data)
-      .eq("id", id);
+      .eq("id", data.id);
 
-    if (error) throw error;
-  } catch (err: any) {
-    console.error("clients.updateClient error:", err);
-    throw new ApplicationError("Erro ao atualizar cliente", err?.message ?? "Erro inesperado", true);
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
+  } catch (error: any) {
+    console.error("clients.updateClient error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
 
-export const softDeleteClient = async (authToken: string, id: string): Promise<void> => {
+export const deleteClient = async (authToken: string, data: ClientDeleteBody): Promise<void> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
     
     const { error } = await saasClient
       .from("clients")
       .update({ is_active: false, is_soft_deleted: true })
-      .eq("id", id);
+      .eq("id", data.id);
 
-    if (error) throw error;
-  } catch (err: any) {
-    console.error("clients.softDeleteClient error:", err);
-    throw new ApplicationError("Erro ao excluir cliente", err?.message ?? "Erro inesperado", true);
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
+  } catch (error: any) {
+    console.error("clients.deleteClient error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };

@@ -2,13 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as photosService from '../services/photos.service';
 import { Type } from '@sinclair/typebox';
-import {
-  PhotoSchema,
-  ProjectIdParamSchema,
-  IdParamSchema,
-  ErrorSchema,
-  MessageSchema
-} from '../schemas/common.schemas';
+import { PhotoSchema, ProjectIdParamSchema } from '../schemas/common.schema';
+import { IdMessageSchema, ErrorSchema, MessageSchema } from '../schemas/common.schema';
 
 export default async function photosRoutes(fastify: FastifyInstance) {
   fastify.get('/:projectId', {
@@ -80,7 +75,7 @@ export default async function photosRoutes(fastify: FastifyInstance) {
       tags: ['photos'],
       description: 'Exclui uma foto',
       security: [{ bearerAuth: [] }],
-      params: IdParamSchema,
+      params: IdMessageSchema,
       response: {
         200: MessageSchema,
         400: ErrorSchema,
