@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { authenticate, AuthenticatedRequest } from '@/middleware/auth';
+import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as weatherService from '@/services/weather.service';
 import { Type } from '@sinclair/typebox';
 import { WeatherSchema, WeatherSyncBodySchema, ProjectIdParamSchema, ErrorSchema, MessageSchema } from '@/schemas/common.schema';

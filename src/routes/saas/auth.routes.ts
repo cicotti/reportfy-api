@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { authenticate, AuthenticatedRequest } from '@/middleware/auth';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 import * as authService from '@/services/saas/auth.service';
 import { LoginBodySchema, UserSessionSchema, ProfileSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema } from '@/schemas/saas/auth.schema';
 import { IdMessageSchema, ErrorSchema, MessageSchema } from '@/schemas/common.schema';

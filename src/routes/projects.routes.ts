@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { authenticate, AuthenticatedRequest } from '@/middleware/auth';
+import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as projectsService from '@/services/projects.service';
 import { Type } from '@sinclair/typebox';
 import { ProjectWithClientSchema, ProjectInsertSchema, ProjectUpdateSchema, ProjectQuerySchema } from '@/schemas/common.schema';

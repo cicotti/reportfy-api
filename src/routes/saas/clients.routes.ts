@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { authenticate, AuthenticatedRequest } from '@/middleware/auth';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 import * as clientsService from '@/services/saas/clients.service';
 import { ClientItemSchema, ClientInsertSchema, ClientUpdateSchema, ClientDeleteSchema, ClientQuerySchema, ClientQuery } from '@/schemas/saas/clients.schema';
 import { IdMessageSchema, ErrorSchema } from '@/schemas/common.schema';
