@@ -6,12 +6,15 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
-// Routes
+// SaaS Routes
+import tenantsRoutes from './routes/saas/tenants.routes';
 import authRoutes from './routes/saas/auth.routes';
 import companiesRoutes from './routes/saas/companies.routes';
 import clientsRoutes from './routes/saas/clients.routes';
 import usersRoutes from './routes/saas/users.routes';
-import informativeTypes from './routes/informative-types.routes';
+// Specific Routes
+import toolsRoutes from './routes/tools.routes';
+import informativeTypesRoutes from './routes/informative-types.routes';
 import projectsRoutes from './routes/projects.routes';
 import projectTasksRoutes from './routes/project-tasks.routes';
 import projectWeatherRoutes from './routes/project-weather.routes';
@@ -66,10 +69,14 @@ async function start() {
           },
         ],
         tags: [
+          // SaaS Tags
+          { name: 'tenants', description: 'Gerenciamento de tenants' },
           { name: 'auth', description: 'Autenticação e gerenciamento de usuários' },
           { name: 'companies', description: 'Gerenciamento de empresas' },
           { name: 'clients', description: 'Gerenciamento de clientes' },
           { name: 'users', description: 'Gerenciamento de usuários' },
+          // Specific Tags
+          { name: 'tools', description: 'Ferramentas auxiliares' },
           { name: 'informative-types', description: 'Gerenciamento de tipos de informativos' },
           { name: 'projects', description: 'Gerenciamento de projetos' },
           { name: 'project-tasks', description: 'Gerenciamento de tarefas de projetos' },
@@ -97,16 +104,17 @@ async function start() {
       transformStaticCSP: (header) => header,
     });
 
-    fastify.get('/', async () => {
-      return { status: 'Reportfy API is accessible', timestamp: new Date().toISOString() };
-    });
+    fastify.get('/', { schema: { hide: true } }, async () => { return { status: 'Reportfy API is accessible.' } });
 
-    // Register routes
+    // Register SaaS routes
+    await fastify.register(tenantsRoutes, { prefix: '/api/tenants' });
     await fastify.register(authRoutes, { prefix: '/api/auth' });
     await fastify.register(companiesRoutes, { prefix: '/api/companies' });
     await fastify.register(clientsRoutes, { prefix: '/api/clients' });
     await fastify.register(usersRoutes, { prefix: '/api/users' });
-    await fastify.register(informativeTypes, { prefix: '/api/informative-types' });
+    // Register specific routes
+    await fastify.register(toolsRoutes, { prefix: '/api/tools' });
+    await fastify.register(informativeTypesRoutes, { prefix: '/api/informative-types' });
     await fastify.register(projectsRoutes, { prefix: '/api/projects' });
     await fastify.register(projectTasksRoutes, { prefix: '/api/project-tasks' });    
     await fastify.register(projectWeatherRoutes, { prefix: '/api/project-weather' });

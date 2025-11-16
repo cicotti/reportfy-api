@@ -4,7 +4,7 @@ import * as photosService from '../services/project-photos.service';
 import { Type } from '@sinclair/typebox';
 import { PhotoItemSchema, PhotoDeleteSchema, PhotoProjectIdParamSchema } from '../schemas/project-photos.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
-import { checkTenant } from '../services/saas/auth.service';
+import { checkTenant } from '../services/saas/tenants.services';
 
 export default async function photosRoutes(fastify: FastifyInstance) {
   fastify.get('/:projectId', {

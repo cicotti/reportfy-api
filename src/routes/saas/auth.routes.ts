@@ -4,17 +4,7 @@ import * as authService from '../../services/saas/auth.service';
 import { LoginBodySchema, UserSessionSchema, ProfileSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema } from '../../schemas/saas/auth.schema';
 import { IdMessageSchema, ErrorSchema, MessageSchema } from '../../schemas/common.schema';
 
-
 export default async function authRoutes(fastify: FastifyInstance) {
-  fastify.get('/check-rsl', { preHandler: authenticate},
-  async (request: AuthenticatedRequest, reply) => {
-    try {
-      const result = await authService.checkRsl(request.authToken!);
-      return reply.code(200).send(result);
-    } catch (error: any) {
-      return reply.code(400).send({ type: error.type, message: error.message });
-    }    
-  });  
 
   // Login
   fastify.post('/login', {
@@ -118,27 +108,6 @@ export default async function authRoutes(fastify: FastifyInstance) {
       const data = request.body as any;
       await authService.updatePassword(request.authToken!, data);
       return reply.code(200).send({ message: 'Senha atualizada com sucesso' });
-    } catch (error: any) {
-      return reply.code(400).send({ type: error.type, message: error.message });
-    }
-  });
-
-  // Check Tenant
-  fastify.get('/check-tenant', {
-    preHandler: authenticate,
-    schema: {
-      tags: ['auth'],
-      description: 'Verifica se o tenant está ativo',
-      security: [{ bearerAuth: [] }],
-      response: {
-        200: MessageSchema,
-        400: ErrorSchema
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
-    try {      
-      await authService.checkTenant(request.authToken!);
-      return reply.code(200).send({ message: 'Tenant está ativo' });
     } catch (error: any) {
       return reply.code(400).send({ type: error.type, message: error.message });
     }
