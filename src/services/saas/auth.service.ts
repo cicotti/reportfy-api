@@ -1,7 +1,7 @@
-import { supabase, supabaseSaas, createAuthenticatedSaasClient, createAuthenticatedClient } from '../../lib/supabase';
+import { supabase, supabaseSaas, createAuthenticatedSaasClient, createAuthenticatedClient } from '@/lib/supabase';
 import { translateErrorCode, setLanguage } from 'supabase-error-translator-js';
-import { LoginBody, UserSessionResult, ProfileResult, SignupBody, ResetPasswordBody, UpdatePasswordBody } from '@/schemas/auth.schema';
-import { ApiError } from '../../lib/errors';
+import { LoginBody, UserSessionResult, ProfileResult, SignupBody, ResetPasswordBody, UpdatePasswordBody } from '@/schemas/saas/auth.schema';
+import { ApiError } from '@/lib/errors';
 
 export const checkRsl = async (authToken: string): Promise<Object> => {
   const saasClient = createAuthenticatedSaasClient(authToken);

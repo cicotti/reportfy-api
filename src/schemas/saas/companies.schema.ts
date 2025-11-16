@@ -1,5 +1,5 @@
 import { Type, Static } from '@sinclair/typebox';
-import { PlanSchema } from '../common.schema';
+import { PlanSchema } from '@/schemas/common.schema';
 
 export const CompanyItemSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),

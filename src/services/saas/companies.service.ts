@@ -1,7 +1,7 @@
-import { createAuthenticatedSaasClient } from '../../lib/supabase';
+import { createAuthenticatedSaasClient } from '@/lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
 import { CompanyListResult, CompanyInsertBody, CompanyUpdateBody, CompanyDeleteBody } from '@/schemas/saas/companies.schema';
-import { ApiError } from '../../lib/errors';
+import { ApiError } from '@/lib/errors';
 
 export const fetchCompanies = async (authToken: string): Promise<CompanyListResult[]> => {
   try {

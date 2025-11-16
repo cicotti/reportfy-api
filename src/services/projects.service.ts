@@ -1,5 +1,5 @@
-import { supabase, supabaseSaas, createAuthenticatedClient, createAuthenticatedSaasClient } from '../lib/supabase';
-import { ApplicationError } from '../lib/errors';
+import { createAuthenticatedClient, createAuthenticatedSaasClient } from '@/lib/supabase';
+import { ApplicationError } from '@/lib/errors';
 
 export interface Project {
   id: string;

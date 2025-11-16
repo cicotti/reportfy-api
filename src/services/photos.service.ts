@@ -1,4 +1,4 @@
-import { createAuthenticatedClient } from '../lib/supabase';
+import { createAuthenticatedClient } from '@/lib/supabase';
 
 export interface ProjectPhoto {
   id: string;
