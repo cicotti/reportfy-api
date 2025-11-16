@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
-import * as companiesService from '../../services/companies.service';
+import * as companiesService from '../../services/saas/companies.service';
 import { CompanyItemSchema, CompanyInsertSchema, CompanyUpdateSchema, CompanyDeleteSchema } from '../../schemas/saas/companies.schema';
 import { IdMessageSchema, ErrorSchema } from '../../schemas/common.schema';
 import { checkTenant } from '../../services/saas/auth.service';
