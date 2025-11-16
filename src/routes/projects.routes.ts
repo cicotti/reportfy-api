@@ -2,65 +2,63 @@ import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as projectsService from '../services/projects.service';
 import { Type } from '@sinclair/typebox';
-import { ProjectWithClientSchema, ProjectInsertSchema, ProjectUpdateSchema, ProjectQuerySchema } from '../schemas/common.schema';
-import { IdMessageSchema, ErrorSchema, MessageSchema } from '../schemas/common.schema';
+import { ProjectItemSchema, ProjectInsertSchema, ProjectUpdateSchema, ProjectDeleteSchema, ProjectQuerySchema, ProjectIdParamSchema } from '../schemas/projects.schema';
+import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
+import { checkTenant } from '../services/saas/auth.service';
 
 export default async function projectsRoutes(fastify: FastifyInstance) {
-  // Get all projects
   fastify.get('/', {
     preHandler: authenticate,
     schema: {
       tags: ['projects'],
-      description: 'Lista todos os projetos, opcionalmente filtrados por cliente',
+      description: 'Lista todos os projetos',
       security: [{ bearerAuth: [] }],
       querystring: ProjectQuerySchema,
       response: {
-        200: Type.Array(ProjectWithClientSchema),
+        200: Type.Array(ProjectItemSchema),
         500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
+      await checkTenant(request.authToken!);
       const { client_id } = request.query as { client_id?: string };
       const projects = await projectsService.fetchProjects(request.authToken!, client_id);
-      return reply.send(projects);
+      return reply.code(200).send(projects);
     } catch (error: any) {
-      console.error('Fetch projects error:', error);
-      return reply.code(500).send({ error: 'Erro ao buscar projetos' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
-  // Get project by ID
   fastify.get('/:id', {
     preHandler: authenticate,
     schema: {
       tags: ['projects'],
       description: 'Busca um projeto específico por ID',
       security: [{ bearerAuth: [] }],
-      params: IdMessageSchema,
+      params: ProjectIdParamSchema,
       response: {
-        200: ProjectWithClientSchema,
+        200: ProjectItemSchema,
         404: ErrorSchema,
         500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
+      await checkTenant(request.authToken!);
       const { id } = request.params as { id: string };
       const project = await projectsService.fetchProject(request.authToken!, id);
       
       if (!project) {
-        return reply.code(404).send({ error: 'Projeto não encontrado' });
+        return reply.code(404).send({ type: 'validation', message: 'Projeto não encontrado' });
       }
 
-      return reply.send(project);
+      return reply.code(200).send(project);
     } catch (error: any) {
-      console.error('Fetch project error:', error);
-      return reply.code(500).send({ error: 'Erro ao buscar projeto' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
-  // Create project
   fastify.post('/', {
     preHandler: authenticate,
     schema: {
@@ -69,68 +67,64 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
       security: [{ bearerAuth: [] }],
       body: ProjectInsertSchema,
       response: {
-        201: MessageSchema,
-        400: ErrorSchema
+        201: IdMessageSchema,
+        500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
+      await checkTenant(request.authToken!);
       const projectData = request.body as any;
-      await projectsService.createProject(request.authToken!, projectData);
-      return reply.code(201).send({ message: 'Projeto criado com sucesso' });
+      const result = await projectsService.createProject(request.authToken!, projectData);
+      return reply.code(201).send({ id: result.id, message: 'Projeto criado com sucesso' });
     } catch (error: any) {
-      console.error('Create project error:', error);
-      return reply.code(400).send({ error: 'Erro ao criar projeto' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
-  // Update project
-  fastify.put('/:id', {
+  fastify.put('/', {
     preHandler: authenticate,
     schema: {
       tags: ['projects'],
-      description: 'Atualiza um projeto existente',
+      description: 'Atualiza um projeto',
       security: [{ bearerAuth: [] }],
-      params: IdMessageSchema,
       body: ProjectUpdateSchema,
       response: {
-        200: MessageSchema,
-        400: ErrorSchema
+        200: IdMessageSchema,
+        500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { id } = request.params as { id: string };
-      const projectData = request.body as any;
+      await checkTenant(request.authToken!);
+      const { id, ...projectData } = request.body as any;
       await projectsService.updateProject(request.authToken!, id, projectData);
-      return reply.send({ message: 'Projeto atualizado com sucesso' });
+      return reply.code(200).send({ id, message: 'Projeto atualizado com sucesso' });
     } catch (error: any) {
-      console.error('Update project error:', error);
-      return reply.code(400).send({ error: 'Erro ao atualizar projeto' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
-  // Delete project (soft delete)
-  fastify.delete('/:id', {
+  fastify.delete('/', {
     preHandler: authenticate,
     schema: {
       tags: ['projects'],
       description: 'Exclui um projeto (soft delete)',
       security: [{ bearerAuth: [] }],
-      params: IdMessageSchema,
+      body: ProjectDeleteSchema,
       response: {
-        200: MessageSchema,
-        400: ErrorSchema
+        200: IdMessageSchema,
+        500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { id } = request.params as { id: string };
-      await projectsService.softDeleteProject(request.authToken!, id);
-      return reply.send({ message: 'Projeto excluído com sucesso' });
+      await checkTenant(request.authToken!);
+      const { id } = request.body as any;
+      await projectsService.deleteProject(request.authToken!, id);
+      return reply.code(200).send({ id, message: 'Projeto excluído com sucesso' });
     } catch (error: any) {
-      console.error('Delete project error:', error);
-      return reply.code(400).send({ error: 'Erro ao excluir projeto' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 }

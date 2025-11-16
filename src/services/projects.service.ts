@@ -1,45 +1,9 @@
 import { createAuthenticatedClient, createAuthenticatedSaasClient } from '../lib/supabase';
-import { ApplicationError } from '../lib/errors';
+import { translateErrorCode } from 'supabase-error-translator-js';
+import { ProjectListResult, ProjectInsertBody, ProjectUpdateBody } from '../schemas/projects.schema';
+import { ApiError } from '../lib/errors';
 
-export interface Project {
-  id: string;
-  company_id: string;
-  client_id: string;
-  name: string;
-  planned_start: string;
-  planned_end: string;
-  actual_start?: string | null;
-  actual_end?: string | null;
-  week_day_report?: number;
-  address: string;
-  location: string;
-  status: string;
-  is_active: boolean;
-  is_soft_deleted: boolean;
-  created_at: string;
-  updated_at: string;
-  created_by?: string | null;
-  updated_by?: string | null;
-}
-
-export interface ProjectWithClient extends Project {
-  client_name?: string;
-  location_lat?: string;
-  location_long?: string;
-}
-
-export interface ProjectFormData {
-  client_id: string;
-  name: string;
-  planned_start: string;
-  planned_end: string;
-  week_day_report?: number;
-  address: string;
-  location: { lat: string; long: string };
-  is_active: boolean;
-}
-
-export async function fetchProjects(authToken: string, clientId?: string): Promise<ProjectWithClient[]> {
+export const fetchProjects = async (authToken: string, clientId?: string): Promise<ProjectListResult[]> => {
   try {
     const client = createAuthenticatedClient(authToken);
     const saasClient = createAuthenticatedSaasClient(authToken);
@@ -48,7 +12,7 @@ export async function fetchProjects(authToken: string, clientId?: string): Promi
       .from("projects")
       .select("*")
       .eq("is_soft_deleted", false)
-      .order("name");
+      .order("name", { ascending: true });
 
     if (clientId) {
       query = query.eq("client_id", clientId);
@@ -56,9 +20,7 @@ export async function fetchProjects(authToken: string, clientId?: string): Promi
 
     const { data, error } = await query;
 
-    if (error) {
-      throw new ApplicationError("Erro ao buscar projetos", error.message, true);
-    }
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
     const projects = (data || []) as any[];
 
@@ -73,7 +35,9 @@ export async function fetchProjects(authToken: string, clientId?: string): Promi
         .select("id, name")
         .in("id", clientIds);
 
-      if (!clientsError && clientsData) {
+      if (clientsError) throw new ApiError("query", translateErrorCode(clientsError.code, "database", "pt"));
+      
+      if (clientsData) {
         clientsMap = (clientsData as any[]).reduce((acc, c) => {
           acc[c.id] = { name: c.name };
           return acc;
@@ -81,69 +45,45 @@ export async function fetchProjects(authToken: string, clientId?: string): Promi
       }
     }
 
-    const projectsWithData: ProjectWithClient[] = projects.map((project) => {
-      let location_lat: string | undefined;
-      let location_long: string | undefined;
-      if (project.location && typeof project.location === "string") {
-        const raw = project.location.replace(/[()]/g, "");
-        const parts = raw.split(",");
-        if (parts.length >= 2) {
-          location_lat = parts[0];
-          location_long = parts[1];
-        }
-      }
-
+    const projectsWithData: ProjectListResult[] = projects.map((project) => {
       return {
         ...project,
         client_name: clientsMap[project.client_id]?.name || "",
-        location_lat,
-        location_long,
-      } as ProjectWithClient;
+      } as ProjectListResult;
     });
 
     return projectsWithData;
-  } catch (error) {
-    if (error instanceof ApplicationError) {
-      throw error;
-    }
-    console.error("Error fetching projects:", error);
-    throw new ApplicationError("Erro ao carregar projetos", "Não foi possível carregar os projetos", true);
+  } catch (error: any) {
+    console.error("projects.fetchProjects error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
-}
+};
 
-export async function fetchProject(authToken: string, projectId: string): Promise<ProjectWithClient | null> {
+export const fetchProject = async (authToken: string, projectId: string): Promise<ProjectListResult | null> => {
   try {
     const client = createAuthenticatedClient(authToken);
     const saasClient = createAuthenticatedSaasClient(authToken);
     
     const { data, error } = await client
       .from("projects")
-      .select(`*`)
+      .select("*")
       .eq("id", projectId)
       .eq("is_soft_deleted", false)
       .single();
 
-    if (error) {
-      throw new ApplicationError("Erro ao buscar projeto", error.message, true);
-    }
-
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
     if (!data) return null;
 
     let clientName = "";
     if ((data as any).client_id) {
-      try {
-        const { data: clientData, error: clientError } = await saasClient
-          .from("clients")
-          .select("name")
-          .eq("id", (data as any).client_id)
-          .single();
+      const { data: clientData, error: clientError } = await saasClient
+        .from("clients")
+        .select("name")
+        .eq("id", (data as any).client_id)
+        .single();
 
-        if (!clientError && clientData) {
-          clientName = (clientData as any).name || "";
-        }
-      } catch (err) {
-        console.error("Erro ao buscar client:", err);
-      }
+      if (clientError) throw new ApiError("query", translateErrorCode(clientError.code, "database", "pt"));
+      if (clientData) clientName = (clientData as any).name || "";
     }
 
     let location_lat: string | undefined;
@@ -162,17 +102,14 @@ export async function fetchProject(authToken: string, projectId: string): Promis
       client_name: clientName,
       location_lat,
       location_long,
-    } as ProjectWithClient;
-  } catch (error) {
-    if (error instanceof ApplicationError) {
-      throw error;
-    }
-    console.error("Error fetching project:", error);
-    throw new ApplicationError("Erro ao carregar projeto", "Não foi possível carregar o projeto", true);
+    } as ProjectListResult;
+  } catch (error: any) {
+    console.error("projects.fetchProject error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
-}
+};
 
-export async function createProject(authToken: string, projectData: ProjectFormData & { company_id: string }): Promise<void> {
+export const createProject = async (authToken: string, projectData: ProjectInsertBody): Promise<{ id: string }> => {
   try {
     const client = createAuthenticatedClient(authToken);
     
@@ -183,21 +120,22 @@ export async function createProject(authToken: string, projectData: ProjectFormD
       payload.location = `(0,0)`;
     }
 
-    const { error } = await client.from("projects").insert([payload] as any);
+    const { data: insertData, error } = await client
+      .from("projects")
+      .insert([payload])
+      .select("id")
+      .single();
 
-    if (error) {
-      throw new ApplicationError("Erro ao criar projeto", error.message, true);
-    }
-  } catch (error) {
-    if (error instanceof ApplicationError) {
-      throw error;
-    }
-    console.error("Error creating project:", error);
-    throw new ApplicationError("Erro ao criar projeto", "Não foi possível criar o projeto", true);
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
+
+    return { id: insertData.id };
+  } catch (error: any) {
+    console.error("projects.createProject error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
-}
+};
 
-export async function updateProject(authToken: string, id: string, projectData: Partial<ProjectFormData>): Promise<void> {
+export const updateProject = async (authToken: string, id: string, projectData: ProjectUpdateBody): Promise<void> => {
   try {
     const client = createAuthenticatedClient(authToken);
     
@@ -206,21 +144,19 @@ export async function updateProject(authToken: string, id: string, projectData: 
       payload.location = `(${(projectData as any).location.lat},${(projectData as any).location.long})`;
     }
 
-    const { error } = await client.from("projects").update(payload as any).eq("id", id);
+    const { error } = await client
+      .from("projects")
+      .update(payload)
+      .eq("id", id);
 
-    if (error) {
-      throw new ApplicationError("Erro ao atualizar projeto", error.message, true);
-    }
-  } catch (error) {
-    if (error instanceof ApplicationError) {
-      throw error;
-    }
-    console.error("Error updating project:", error);
-    throw new ApplicationError("Erro ao atualizar projeto", "Não foi possível atualizar o projeto", true);
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
+  } catch (error: any) {
+    console.error("projects.updateProject error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
-}
+};
 
-export async function softDeleteProject(authToken: string, id: string): Promise<void> {
+export const deleteProject = async (authToken: string, id: string): Promise<void> => {
   try {
     const client = createAuthenticatedClient(authToken);
     
@@ -229,14 +165,9 @@ export async function softDeleteProject(authToken: string, id: string): Promise<
       .update({ is_soft_deleted: true })
       .eq("id", id);
 
-    if (error) {
-      throw new ApplicationError("Erro ao excluir projeto", error.message, true);
-    }
-  } catch (error) {
-    if (error instanceof ApplicationError) {
-      throw error;
-    }
-    console.error("Error deleting project:", error);
-    throw new ApplicationError("Erro ao excluir projeto", "Não foi possível excluir o projeto", true);
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
+  } catch (error: any) {
+    console.error("projects.deleteProject error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
-}
+};

@@ -1,6 +1,5 @@
-import { Type, Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 
-// ===== Common Schemas =====
 export const ErrorSchema = Type.Object({
   type: Type.Union([
     Type.Literal('tenant_inactive'),
@@ -31,6 +30,11 @@ export const ProjectStatusSchema = Type.Union([
   Type.Literal('on_hold')
 ]);
 
+ export const locationSchema = Type.Object({
+    lat: Type.String(),
+    long: Type.String()
+  });
+
 export const MessageSchema = Type.Object({
   message: Type.String()
 });
@@ -48,88 +52,3 @@ export const TranslationItemSchema = Type.Object({
   value: Type.String(),  
   created_at: Type.String({ format: 'date-time' })
 });
-
-// ===== Project Schemas =====
-export const ProjectSchema = Type.Object({
-  id: Type.String({ format: 'uuid' }),
-  client_id: Type.String({ format: 'uuid' }),
-  title: Type.String(),
-  description: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  location: Type.Optional(Type.Any()), // JSONB
-  status: ProjectStatusSchema,
-  start_date: Type.Optional(Type.Union([Type.String({ format: 'date' }), Type.Null()])),
-  end_date: Type.Optional(Type.Union([Type.String({ format: 'date' }), Type.Null()])),
-  budget: Type.Optional(Type.Union([Type.Number(), Type.Null()])),
-  is_active: Type.Boolean(),
-  created_at: Type.String({ format: 'date-time' }),
-  updated_at: Type.Optional(Type.String({ format: 'date-time' }))
-});
-
-export const ProjectWithClientSchema = Type.Intersect([
-  ProjectSchema,
-  Type.Object({
-    client: Type.Object({
-      name: Type.String(),
-      email: Type.Optional(Type.Union([Type.String({ format: 'email' }), Type.Null()])),
-      telephone: Type.Optional(Type.Union([Type.String(), Type.Null()]))
-    })
-  })
-]);
-
-export const ProjectInsertSchema = Type.Object({
-  client_id: Type.String({ format: 'uuid' }),
-  title: Type.String({ minLength: 1 }),
-  description: Type.Optional(Type.String()),
-  location: Type.Optional(Type.Any()),
-  status: ProjectStatusSchema,
-  start_date: Type.Optional(Type.String({ format: 'date' })),
-  end_date: Type.Optional(Type.String({ format: 'date' })),
-  budget: Type.Optional(Type.Number({ minimum: 0 }))
-});
-
-export const ProjectUpdateSchema = Type.Partial(Type.Omit(ProjectInsertSchema, ['client_id']));
-
-export const ProjectQuerySchema = Type.Object({
-  client_id: Type.Optional(Type.String({ format: 'uuid' }))
-});
-
-// ===== Weather Schemas =====
-export const WeatherSchema = Type.Object({
-  id: Type.String({ format: 'uuid' }),
-  project_id: Type.String({ format: 'uuid' }),
-  date: Type.String({ format: 'date' }),
-  temperature: Type.Optional(Type.Union([Type.Number(), Type.Null()])),
-  humidity: Type.Optional(Type.Union([Type.Number(), Type.Null()])),
-  description: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  wind_speed: Type.Optional(Type.Union([Type.Number(), Type.Null()])),
-  precipitation: Type.Optional(Type.Union([Type.Number(), Type.Null()])),
-  created_at: Type.String({ format: 'date-time' })
-});
-
-export const WeatherSyncBodySchema = Type.Object({
-  latitude: Type.Number({ minimum: -90, maximum: 90 }),
-  longitude: Type.Number({ minimum: -180, maximum: 180 })
-});
-
-export const ProjectIdParamSchema = Type.Object({
-  projectId: Type.String({ format: 'uuid' })
-});
-
-// ===== Photo Schemas =====
-export const PhotoSchema = Type.Object({
-  id: Type.String({ format: 'uuid' }),
-  project_id: Type.String({ format: 'uuid' }),
-  url: Type.String({ format: 'uri' }),
-  thumbnail_url: Type.Optional(Type.Union([Type.String({ format: 'uri' }), Type.Null()])),
-  description: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  uploaded_by: Type.String({ format: 'uuid' }),
-  created_at: Type.String({ format: 'date-time' })
-});
-
-// Type exports for TypeScript
-export type Project = Static<typeof ProjectSchema>;
-export type ProjectInsert = Static<typeof ProjectInsertSchema>;
-export type ProjectUpdate = Static<typeof ProjectUpdateSchema>;
-export type Weather = Static<typeof WeatherSchema>;
-export type WeatherSyncBody = Static<typeof WeatherSyncBodySchema>;
-export type Photo = Static<typeof PhotoSchema>;

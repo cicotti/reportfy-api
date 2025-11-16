@@ -1,38 +1,31 @@
 import { createAuthenticatedClient } from '../lib/supabase';
+import { translateErrorCode } from 'supabase-error-translator-js';
 import { getCurrentWeekStart, getNextWeekEnd, getNextWeekStart } from '../lib/utils';
+import { WeatherListResult, WeatherSyncBody } from '../schemas/weather.schema';
+import { ApiError } from '../lib/errors';
 
-export interface Weather {
-  id: string;
-  project_id: string;
-  weather_date: string;
-  min_temperature: number;
-  max_temperature: number;
-  climate: string;
-  is_prediction: boolean;
-  created_at: string;
-  updated_at: string;
-}
+export const getProjectWeather = async (authToken: string, projectId: string): Promise<WeatherListResult[]> => {
+  try {
+    const client = createAuthenticatedClient(authToken);
+    const currentWeekStart = getCurrentWeekStart();
+    const nextWeekEnd = getNextWeekEnd();
 
-export async function getProjectWeather(authToken: string, projectId: string): Promise<Weather[]> {
-  const client = createAuthenticatedClient(authToken);
-  const currentWeekStart = getCurrentWeekStart();
-  const nextWeekEnd = getNextWeekEnd();
+    const { data, error } = await client
+      .from("project_weathers")
+      .select("*")
+      .eq("project_id", projectId)
+      .gte("weather_date", currentWeekStart)
+      .lte("weather_date", nextWeekEnd)
+      .order("weather_date", { ascending: true });
 
-  const { data, error } = await client
-    .from("project_weathers")
-    .select("*")
-    .eq("project_id", projectId)
-    .gte("weather_date", currentWeekStart)
-    .lte("weather_date", nextWeekEnd)
-    .order("weather_date", { ascending: true });
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
-  if (error) {
-    console.error("Error fetching weather:", error);
-    throw error;
+    return (data as WeatherListResult[]) || [];
+  } catch (error: any) {
+    console.error("weather.getProjectWeather error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
-
-  return (data as Weather[]) || [];
-}
+};
 
 export function getWeatherDescription(weatherCode: number): string {
   const weatherCodes: { [key: number]: string } = {
@@ -68,26 +61,26 @@ export async function fetchWeatherFromAPI(
   startDate: string,
   endDate: string
 ): Promise<any> {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=America/Sao_Paulo&start_date=${startDate}&end_date=${endDate}`;
-
   try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=America/Sao_Paulo&start_date=${startDate}&end_date=${endDate}`;
+
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.statusText}`);
+      throw new ApiError("critical", `API request failed: ${response.statusText}`);
     }
     return await response.json();
-  } catch (error) {
-    console.error("Error fetching weather from API:", error);
-    throw error;
+  } catch (error: any) {
+    console.error("weather.fetchWeatherFromAPI error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro ao buscar clima da API");
   }
 }
 
-export async function syncProjectWeatherFromAPI(
+export const syncProjectWeatherFromAPI = async (
   authToken: string,
   projectId: string,
   latitude: number,
   longitude: number
-): Promise<void> {
+): Promise<void> => {
   try {
     const client = createAuthenticatedClient(authToken);
     const today = new Date().toISOString().split('T')[0];
@@ -125,8 +118,8 @@ export async function syncProjectWeatherFromAPI(
           .upsert(record, { onConflict: "project_id, weather_date" });
       }
     }
-  } catch (error) {
-    console.error("Error syncing weather from API:", error);
-    throw error;
+  } catch (error: any) {
+    console.error("weather.syncProjectWeatherFromAPI error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
-}
+};

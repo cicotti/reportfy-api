@@ -1,40 +1,35 @@
 import { createAuthenticatedClient } from '../lib/supabase';
+import { translateErrorCode } from 'supabase-error-translator-js';
+import { PhotoListResult } from '../schemas/photos.schema';
+import { ApiError } from '../lib/errors';
 
-export interface ProjectPhoto {
-  id: string;
-  project_id: string;
-  photo_url: string;
-  description: string | null;
-  display_order: number;
-  created_at: string;
-  updated_at: string;
-}
+export const getProjectPhotos = async (authToken: string, projectId: string): Promise<PhotoListResult[]> => {
+  try {
+    const client = createAuthenticatedClient(authToken);
+    
+    const { data, error } = await client
+      .from("project_photos")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("display_order", { ascending: true })
+      .order("created_at", { ascending: false });
 
-export async function getProjectPhotos(authToken: string, projectId: string): Promise<ProjectPhoto[]> {
-  const client = createAuthenticatedClient(authToken);
-  
-  const { data, error } = await client
-    .from("project_photos")
-    .select("*")
-    .eq("project_id", projectId)
-    .order("display_order", { ascending: true })
-    .order("created_at", { ascending: false });
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
-  if (error) {
-    console.error("Error fetching project photos:", error);
-    throw error;
+    return (data as PhotoListResult[]) || [];
+  } catch (error: any) {
+    console.error("photos.getProjectPhotos error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
+};
 
-  return (data as ProjectPhoto[]) || [];
-}
-
-export async function uploadProjectPhoto(
+export const uploadProjectPhoto = async (
   authToken: string,
   projectId: string,
   file: Buffer,
   fileName: string,
   description?: string
-): Promise<ProjectPhoto> {
+): Promise<PhotoListResult> => {
   try {
     const client = createAuthenticatedClient(authToken);
     
@@ -48,10 +43,7 @@ export async function uploadProjectPhoto(
         upsert: false,
       });
 
-    if (uploadError) {
-      console.error("Error uploading photo:", uploadError);
-      throw uploadError;
-    }
+    if (uploadError) throw new ApiError("critical", translateErrorCode(uploadError.message, "storage", "pt"));
 
     const { data: urlData } = client.storage
       .from("project-photos")
@@ -79,43 +71,39 @@ export async function uploadProjectPhoto(
       .single();
 
     if (error) {
-      console.error("Error creating photo record:", error);
       await client.storage.from("project-photos").remove([storagePath]);
-      throw error;
+      throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
     }
 
-    return data as ProjectPhoto;
-  } catch (error) {
-    console.error("Error in uploadProjectPhoto:", error);
-    throw error;
+    return data as PhotoListResult;
+  } catch (error: any) {
+    console.error("photos.uploadProjectPhoto error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
-}
+};
 
-export async function deleteProjectPhoto(authToken: string, photo: ProjectPhoto): Promise<void> {
+export const deleteProjectPhoto = async (authToken: string, photoId: string, photoUrl: string): Promise<void> => {
   try {
     const client = createAuthenticatedClient(authToken);
     
-    const url = new URL(photo.photo_url);
-    const pathParts = url.pathname.split("/project-photos/");
-    const filePath = pathParts[1];
-
     const { error: dbError } = await client
       .from("project_photos")
       .delete()
-      .eq("id", photo.id);
+      .eq("id", photoId);
 
-    if (dbError) {
-      console.error("Error deleting photo from database:", dbError);
-      throw dbError;
-    }
+    if (dbError) throw new ApiError("query", translateErrorCode(dbError.code, "database", "pt"));
+
+    const url = new URL(photoUrl);
+    const pathParts = url.pathname.split("/project-photos/");
+    const filePath = pathParts[1];
 
     if (filePath) {
       await client.storage
         .from("project-photos")
         .remove([filePath]);
     }
-  } catch (error) {
-    console.error("Error in deleteProjectPhoto:", error);
-    throw error;
+  } catch (error: any) {
+    console.error("photos.deleteProjectPhoto error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
-}
+};

@@ -2,7 +2,9 @@ import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as weatherService from '../services/weather.service';
 import { Type } from '@sinclair/typebox';
-import { WeatherSchema, WeatherSyncBodySchema, ProjectIdParamSchema, ErrorSchema, MessageSchema } from '../schemas/common.schema';
+import { WeatherItemSchema, WeatherSyncSchema, WeatherProjectIdParamSchema } from '../schemas/weather.schema';
+import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
+import { checkTenant } from '../services/saas/auth.service';
 
 export default async function weatherRoutes(fastify: FastifyInstance) {
   fastify.get('/:projectId', {
@@ -11,19 +13,20 @@ export default async function weatherRoutes(fastify: FastifyInstance) {
       tags: ['weather'],
       description: 'Busca informações meteorológicas de um projeto',
       security: [{ bearerAuth: [] }],
-      params: ProjectIdParamSchema,
+      params: WeatherProjectIdParamSchema,
       response: {
-        200: Type.Array(WeatherSchema),
+        200: Type.Array(WeatherItemSchema),
         500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
+      await checkTenant(request.authToken!);
       const { projectId } = request.params as { projectId: string };
       const weather = await weatherService.getProjectWeather(request.authToken!, projectId);
-      return reply.send(weather);
+      return reply.code(200).send(weather);
     } catch (error: any) {
-      return reply.code(500).send({ error: 'Erro ao buscar clima' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
@@ -33,26 +36,23 @@ export default async function weatherRoutes(fastify: FastifyInstance) {
       tags: ['weather'],
       description: 'Sincroniza dados meteorológicos de um projeto a partir de coordenadas GPS',
       security: [{ bearerAuth: [] }],
-      params: ProjectIdParamSchema,
-      body: WeatherSyncBodySchema,
+      params: WeatherProjectIdParamSchema,
+      body: WeatherSyncSchema,
       response: {
-        200: MessageSchema,
-        400: ErrorSchema
+        200: IdMessageSchema,
+        500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
+      await checkTenant(request.authToken!);
       const { projectId } = request.params as { projectId: string };
       const { latitude, longitude } = request.body as { latitude: number; longitude: number };
       
-      if (!latitude || !longitude) {
-        return reply.code(400).send({ error: 'Latitude e longitude são obrigatórias' });
-      }
-
       await weatherService.syncProjectWeatherFromAPI(request.authToken!, projectId, latitude, longitude);
-      return reply.send({ message: 'Clima sincronizado com sucesso' });
+      return reply.code(200).send({ id: projectId, message: 'Clima sincronizado com sucesso' });
     } catch (error: any) {
-      return reply.code(400).send({ error: 'Erro ao sincronizar clima' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 }

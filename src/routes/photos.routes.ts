@@ -2,8 +2,9 @@ import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as photosService from '../services/photos.service';
 import { Type } from '@sinclair/typebox';
-import { PhotoSchema, ProjectIdParamSchema } from '../schemas/common.schema';
-import { IdMessageSchema, ErrorSchema, MessageSchema } from '../schemas/common.schema';
+import { PhotoItemSchema, PhotoDeleteSchema, PhotoProjectIdParamSchema } from '../schemas/photos.schema';
+import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
+import { checkTenant } from '../services/saas/auth.service';
 
 export default async function photosRoutes(fastify: FastifyInstance) {
   fastify.get('/:projectId', {
@@ -12,19 +13,20 @@ export default async function photosRoutes(fastify: FastifyInstance) {
       tags: ['photos'],
       description: 'Lista todas as fotos de um projeto',
       security: [{ bearerAuth: [] }],
-      params: ProjectIdParamSchema,
+      params: PhotoProjectIdParamSchema,
       response: {
-        200: Type.Array(PhotoSchema),
+        200: Type.Array(PhotoItemSchema),
         500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
+      await checkTenant(request.authToken!);
       const { projectId } = request.params as { projectId: string };
       const photos = await photosService.getProjectPhotos(request.authToken!, projectId);
-      return reply.send(photos);
+      return reply.code(200).send(photos);
     } catch (error: any) {
-      return reply.code(500).send({ error: 'Erro ao buscar fotos' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
@@ -34,20 +36,21 @@ export default async function photosRoutes(fastify: FastifyInstance) {
       tags: ['photos'],
       description: 'Faz upload de uma foto para um projeto (multipart/form-data)',
       security: [{ bearerAuth: [] }],
-      params: ProjectIdParamSchema,
+      params: PhotoProjectIdParamSchema,
       consumes: ['multipart/form-data'],
       response: {
-        201: PhotoSchema,
-        400: ErrorSchema
+        201: PhotoItemSchema,
+        500: ErrorSchema
       }
     }
   }, async (request: any, reply) => {
     try {
+      await checkTenant((request as AuthenticatedRequest).authToken!);
       const { projectId } = request.params as { projectId: string };
       const data = await request.file();
       
       if (!data) {
-        return reply.code(400).send({ error: 'Arquivo não fornecido' });
+        return reply.code(500).send({ type: 'validation', message: 'Arquivo não fornecido' });
       }
 
       const buffer = await data.toBuffer();
@@ -64,39 +67,39 @@ export default async function photosRoutes(fastify: FastifyInstance) {
 
       return reply.code(201).send(photo);
     } catch (error: any) {
-      console.error('Upload photo error:', error);
-      return reply.code(400).send({ error: 'Erro ao fazer upload da foto' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
-  fastify.delete('/:id', {
+  fastify.delete('/', {
     preHandler: authenticate,
     schema: {
       tags: ['photos'],
       description: 'Exclui uma foto',
       security: [{ bearerAuth: [] }],
-      params: IdMessageSchema,
+      body: PhotoDeleteSchema,
       response: {
-        200: MessageSchema,
-        400: ErrorSchema,
-        404: ErrorSchema
+        200: IdMessageSchema,
+        500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { id } = request.params as { id: string };
-      // Primeiro busca a foto para ter as informações necessárias
-      const photos = await photosService.getProjectPhotos(request.authToken!, '');
-      const photo = photos.find(p => p.id === id);
+      await checkTenant(request.authToken!);
+      const { id } = request.body as any;
+      
+      // Busca a foto para obter a URL
+      const allPhotos = await photosService.getProjectPhotos(request.authToken!, '');
+      const photo = allPhotos.find(p => p.id === id);
       
       if (!photo) {
-        return reply.code(404).send({ error: 'Foto não encontrada' });
+        return reply.code(500).send({ type: 'validation', message: 'Foto não encontrada' });
       }
 
-      await photosService.deleteProjectPhoto(request.authToken!, photo);
-      return reply.send({ message: 'Foto excluída com sucesso' });
+      await photosService.deleteProjectPhoto(request.authToken!, photo.id, photo.photo_url);
+      return reply.code(200).send({ id, message: 'Foto excluída com sucesso' });
     } catch (error: any) {
-      return reply.code(400).send({ error: 'Erro ao excluir foto' });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 }
