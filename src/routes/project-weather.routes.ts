@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
-import * as weatherService from '../services/weather.service';
+import * as weatherService from '../services/project-weather.service';
 import { Type } from '@sinclair/typebox';
-import { WeatherItemSchema, WeatherSyncSchema, WeatherProjectIdParamSchema } from '../schemas/weather.schema';
+import { WeatherItemSchema, WeatherSyncSchema, WeatherProjectIdParamSchema } from '../schemas/project-weather.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
 import { checkTenant } from '../services/saas/auth.service';
 
@@ -10,7 +10,7 @@ export default async function weatherRoutes(fastify: FastifyInstance) {
   fastify.get('/:projectId', {
     preHandler: authenticate,
     schema: {
-      tags: ['weather'],
+      tags: ['project-weathers'],
       description: 'Busca informações meteorológicas de um projeto',
       security: [{ bearerAuth: [] }],
       params: WeatherProjectIdParamSchema,
@@ -33,7 +33,7 @@ export default async function weatherRoutes(fastify: FastifyInstance) {
   fastify.post('/:projectId/sync', {
     preHandler: authenticate,
     schema: {
-      tags: ['weather'],
+      tags: ['project-weathers'],
       description: 'Sincroniza dados meteorológicos de um projeto a partir de coordenadas GPS',
       security: [{ bearerAuth: [] }],
       params: WeatherProjectIdParamSchema,

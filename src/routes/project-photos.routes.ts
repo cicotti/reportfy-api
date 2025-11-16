@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
-import * as photosService from '../services/photos.service';
+import * as photosService from '../services/project-photos.service';
 import { Type } from '@sinclair/typebox';
-import { PhotoItemSchema, PhotoDeleteSchema, PhotoProjectIdParamSchema } from '../schemas/photos.schema';
+import { PhotoItemSchema, PhotoDeleteSchema, PhotoProjectIdParamSchema } from '../schemas/project-photos.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
 import { checkTenant } from '../services/saas/auth.service';
 
@@ -10,7 +10,7 @@ export default async function photosRoutes(fastify: FastifyInstance) {
   fastify.get('/:projectId', {
     preHandler: authenticate,
     schema: {
-      tags: ['photos'],
+      tags: ['project-photos'],
       description: 'Lista todas as fotos de um projeto',
       security: [{ bearerAuth: [] }],
       params: PhotoProjectIdParamSchema,
@@ -33,7 +33,7 @@ export default async function photosRoutes(fastify: FastifyInstance) {
   fastify.post('/:projectId', {
     preHandler: authenticate,
     schema: {
-      tags: ['photos'],
+      tags: ['project-photos'],
       description: 'Faz upload de uma foto para um projeto (multipart/form-data)',
       security: [{ bearerAuth: [] }],
       params: PhotoProjectIdParamSchema,
@@ -74,7 +74,7 @@ export default async function photosRoutes(fastify: FastifyInstance) {
   fastify.delete('/', {
     preHandler: authenticate,
     schema: {
-      tags: ['photos'],
+      tags: ['project-photos'],
       description: 'Exclui uma foto',
       security: [{ bearerAuth: [] }],
       body: PhotoDeleteSchema,

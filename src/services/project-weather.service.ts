@@ -1,7 +1,7 @@
 import { createAuthenticatedClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
 import { getCurrentWeekStart, getNextWeekEnd, getNextWeekStart } from '../lib/utils';
-import { WeatherListResult, WeatherSyncBody } from '../schemas/weather.schema';
+import { WeatherListResult, WeatherSyncBody } from '../schemas/project-weather.schema';
 import { ApiError } from '../lib/errors';
 
 export const getProjectWeather = async (authToken: string, projectId: string): Promise<WeatherListResult[]> => {

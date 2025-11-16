@@ -1,6 +1,6 @@
 import { createAuthenticatedClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { PhotoListResult } from '../schemas/photos.schema';
+import { PhotoListResult } from '../schemas/project-photos.schema';
 import { ApiError } from '../lib/errors';
 
 export const getProjectPhotos = async (authToken: string, projectId: string): Promise<PhotoListResult[]> => {
