@@ -7,13 +7,13 @@ import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 // Routes
-import authRoutes from '@/routes/saas/auth.routes';
-import companiesRoutes from '@/routes/saas/companies.routes';
-import clientsRoutes from '@/routes/saas/clients.routes';
-import usersRoutes from '@/routes/saas/users.routes';
-import projectsRoutes from '@/routes/projects.routes';
-import weatherRoutes from '@/routes/weather.routes';
-import photosRoutes from '@/routes/photos.routes';
+import authRoutes from './routes/saas/auth.routes';
+import companiesRoutes from './routes/saas/companies.routes';
+import clientsRoutes from './routes/saas/clients.routes';
+import usersRoutes from './routes/saas/users.routes';
+import projectsRoutes from './routes/projects.routes';
+import weatherRoutes from './routes/weather.routes';
+import photosRoutes from './routes/photos.routes';
 
 const PORT = parseInt(process.env.PORT || '5173', 10); // Default to 5173 for Vite compatibility
  
