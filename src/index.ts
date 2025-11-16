@@ -13,10 +13,10 @@ import clientsRoutes from './routes/saas/clients.routes';
 import usersRoutes from './routes/saas/users.routes';
 import informativeTypes from './routes/informative-types.routes';
 import projectsRoutes from './routes/projects.routes';
-
+import projectTasksRoutes from './routes/project-tasks.routes';
 import weatherRoutes from './routes/weather.routes';
 import photosRoutes from './routes/photos.routes';
-import projectInformatives from './routes/project-informatives.routes';
+import projectInformativesRoutes from './routes/project-informatives.routes';
 
 const PORT = parseInt(process.env.PORT || '5173', 10); // Default to 5173 for Vite compatibility
  
@@ -72,7 +72,7 @@ async function start() {
           { name: 'users', description: 'Gerenciamento de usuários' },
           { name: 'informative-types', description: 'Gerenciamento de tipos de informativos' },
           { name: 'projects', description: 'Gerenciamento de projetos' },
-
+          { name: 'project-tasks', description: 'Gerenciamento de tarefas de projetos' },
           { name: 'weather', description: 'Informações meteorológicas' },
           { name: 'photos', description: 'Upload e gerenciamento de fotos' },          
           { name: 'project-informatives', description: 'Gerenciamento de informativos de projetos' },
@@ -108,10 +108,10 @@ async function start() {
     await fastify.register(usersRoutes, { prefix: '/api/users' });
     await fastify.register(informativeTypes, { prefix: '/api/informative-types' });
     await fastify.register(projectsRoutes, { prefix: '/api/projects' });
-    
+    await fastify.register(projectTasksRoutes, { prefix: '/api/project-tasks' });    
     await fastify.register(weatherRoutes, { prefix: '/api/weather' });
     await fastify.register(photosRoutes, { prefix: '/api/photos' });    
-    await fastify.register(projectInformatives, { prefix: '/api/project-informatives' });
+    await fastify.register(projectInformativesRoutes, { prefix: '/api/project-informatives' });
 
     // Start server
     await fastify.listen({ port: PORT }).then(() => {
