@@ -1,85 +1,74 @@
 import { createAuthenticatedSaasClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { ClientListResult, ClientInsertBody, ClientUpdateBody, ClientDeleteBody, ClientQuery } from '../schemas/clients.schema';
+import { CompanyListResult, CompanyInsertBody, CompanyUpdateBody, CompanyDeleteBody } from '@/schemas/saas/companies.schema';
 import { ApiError } from '../lib/errors';
 
-export const fetchClients = async (authToken: string, queryString?: ClientQuery): Promise<ClientListResult[]> => {
+export const fetchCompanies = async (authToken: string): Promise<CompanyListResult[]> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
-    
-    let query = saasClient
-      .from("clients")
-      .select("*, company:companies(id, name)")
-      .eq("is_soft_deleted", false)
+    const { data, error } = await saasClient
+      .from("companies")
+      .select("*, profiles!profiles_company_id_fkey(count)")
       .order("name", { ascending: true });
-
-    if (queryString && queryString.company_id) {
-      query = query.eq("company_id", queryString.company_id!);
-    }
-
-    const { data, error } = await query;
     
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
-    const clientsWithCompany = (data || []).map((client: any) => ({
-      ...client,
-      company: client.company ?? null,
-    })) as ClientListResult[];
+    const companiesWithCount = (data || []).map((company: any) => ({ 
+      ...company, 
+      users_count: company.profiles?.[0]?.count ?? 0 
+    })) as CompanyListResult[];
 
-    return clientsWithCompany;
+    return companiesWithCount;
   } catch (error: any) {
-    console.error("clients.fetchClients error:", error);
+    console.error("companies.fetchCompanies error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
 
-export const createClient = async (authToken: string, data: ClientInsertBody): Promise<{ id: string }> => {
+export const createCompany = async (authToken: string, data: CompanyInsertBody): Promise<{ id: string }> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
-    
     const { data: result, error } = await saasClient
-      .from("clients")
+      .from("companies")
       .insert([data])
-      .select("id")
-      .single();
+      .select("id").single();
     
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
-    
-    return { id: result.id };
+
+    return { id: result!.id };
   } catch (error: any) {
-    console.error("clients.createClient error:", error);
+    console.error("companies.createCompany error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
 
-export const updateClient = async (authToken: string, data: ClientUpdateBody): Promise<void> => {
+export const updateCompany = async (authToken: string, data: CompanyUpdateBody): Promise<void> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
     
     const { error } = await saasClient
-      .from("clients")
+      .from("companies")
       .update(data)
       .eq("id", data.id);
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
   } catch (error: any) {
-    console.error("clients.updateClient error:", error);
+    console.error("companies.updateCompany error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
 
-export const deleteClient = async (authToken: string, data: ClientDeleteBody): Promise<void> => {
+export const deleteCompany = async (authToken: string, data: CompanyDeleteBody): Promise<void> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
-    
     const { error } = await saasClient
-      .from("clients")
+      .from("companies")
       .update({ is_active: false, is_soft_deleted: true })
       .eq("id", data.id);
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
   } catch (error: any) {
-    console.error("clients.deleteClient error:", error);
+    console.error("companies.deleteCompany error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };

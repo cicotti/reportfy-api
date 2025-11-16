@@ -7,10 +7,10 @@ import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 // Routes
-import authRoutes from './routes/auth.routes';
-import companiesRoutes from './routes/companies.routes';
-import clientsRoutes from './routes/clients.routes';
-import usersRoutes from './routes/users.routes';
+import authRoutes from './routes/saas/auth.routes';
+import companiesRoutes from './routes/saas/companies.routes';
+import clientsRoutes from './routes/saas/clients.routes';
+import usersRoutes from './routes/saas/users.routes';
 import projectsRoutes from './routes/projects.routes';
 import weatherRoutes from './routes/weather.routes';
 import photosRoutes from './routes/photos.routes';

@@ -1,27 +1,29 @@
 import { FastifyInstance } from 'fastify';
-import { authenticate, AuthenticatedRequest } from '../middleware/auth';
-import * as companiesService from '../services/companies.service';
-import { CompanyItemSchema, CompanyInsertSchema, CompanyUpdateSchema, CompanyDeleteSchema } from '../schemas/companies.schema';
-import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
-import { checkTenant } from '../services/auth.service';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import * as clientsService from '../../services/saas/clients.service';
+import { ClientItemSchema, ClientInsertSchema, ClientUpdateSchema, ClientDeleteSchema, ClientQuerySchema, ClientQuery } from '../../schemas/saas/clients.schema';
+import { IdMessageSchema, ErrorSchema } from '../../schemas/common.schema';
+import { checkTenant } from '../../services/saas/auth.service';
 import { Type } from '@sinclair/typebox';
 
-export default async function companiesRoutes(fastify: FastifyInstance) {
+export default async function clientsRoutes(fastify: FastifyInstance) {
   fastify.get('/', {
     preHandler: authenticate,
     schema: {
-      tags: ['companies'],
-      description: 'Lista todas as empresas',
+      tags: ['clients'],
+      description: 'Lista todos os clientes',
       security: [{ bearerAuth: [] }],
+      querystring: ClientQuerySchema,
       response: {
-        200: Type.Array(CompanyItemSchema),
+        200: Type.Array(ClientItemSchema),
         500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       await checkTenant(request.authToken!);
-      const result = await companiesService.fetchCompanies(request.authToken!);
+      const query = request.query as ClientQuery;
+      const result = await clientsService.fetchClients(request.authToken!, query);
       return reply.code(200).send(result);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
@@ -31,10 +33,10 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
   fastify.post('/', {
     preHandler: authenticate,
     schema: {
-      tags: ['companies'],
-      description: 'Cria uma nova empresa',
+      tags: ['clients'],
+      description: 'Cria um novo cliente',
       security: [{ bearerAuth: [] }],
-      body: CompanyInsertSchema,
+      body: ClientInsertSchema,
       response: {
         201: IdMessageSchema,
         500: ErrorSchema
@@ -44,8 +46,8 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     try {
       await checkTenant(request.authToken!);
       const data = request.body as any;
-      var result = await companiesService.createCompany(request.authToken!, data);
-      return reply.code(201).send({ id: result.id, message: 'Empresa criada com sucesso' });
+      const result = await clientsService.createClient(request.authToken!, data);
+      return reply.code(201).send({ id: result.id, message: 'Cliente criado com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
@@ -54,10 +56,10 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
   fastify.put('/', {
     preHandler: authenticate,
     schema: {
-      tags: ['companies'],
-      description: 'Atualiza uma empresa existente',
+      tags: ['clients'],
+      description: 'Atualiza um cliente existente',
       security: [{ bearerAuth: [] }],
-      body: CompanyUpdateSchema,
+      body: ClientUpdateSchema,
       response: {
         200: IdMessageSchema,
         500: ErrorSchema
@@ -67,8 +69,8 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     try {
       await checkTenant(request.authToken!);
       const data = request.body as any;
-      await companiesService.updateCompany(request.authToken!, data);
-      return reply.code(200).send({ id: data.id, message: 'Empresa atualizada com sucesso' });
+      await clientsService.updateClient(request.authToken!, data);
+      return reply.code(200).send({ id: data.id, message: 'Cliente atualizado com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
@@ -77,10 +79,10 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
   fastify.delete('/', {
     preHandler: authenticate,
     schema: {
-      tags: ['companies'],
-      description: 'Exclui uma empresa',
+      tags: ['clients'],
+      description: 'Exclui um cliente',
       security: [{ bearerAuth: [] }],
-      body: CompanyDeleteSchema,
+      body: ClientDeleteSchema,
       response: {
         200: IdMessageSchema,
         500: ErrorSchema
@@ -90,8 +92,8 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     try {
       await checkTenant(request.authToken!);
       const data = request.body as any;
-      await companiesService.deleteCompany(request.authToken!, data);
-      return reply.code(200).send({ id: data.id, message: 'Empresa excluída com sucesso' });
+      await clientsService.deleteClient(request.authToken!, data);
+      return reply.code(200).send({ id: data.id, message: 'Cliente excluído com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }

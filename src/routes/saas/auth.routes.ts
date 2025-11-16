@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { authenticate, AuthenticatedRequest } from '../middleware/auth';
-import * as authService from '../services/auth.service';
-import { LoginBodySchema, UserSessionSchema, ProfileSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema } from '../schemas/auth.schema';
-import { IdMessageSchema, ErrorSchema, MessageSchema } from '../schemas/common.schema';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import * as authService from '../../services/saas/auth.service';
+import { LoginBodySchema, UserSessionSchema, ProfileSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema } from '../../schemas/saas/auth.schema';
+import { IdMessageSchema, ErrorSchema, MessageSchema } from '../../schemas/common.schema';
 
 export default async function authRoutes(fastify: FastifyInstance) {
   fastify.get('/check-rsl', { preHandler: authenticate},

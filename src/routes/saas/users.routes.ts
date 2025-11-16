@@ -1,9 +1,9 @@
 import { FastifyInstance } from 'fastify';
-import { authenticate, AuthenticatedRequest } from '../middleware/auth';
-import * as usersService from '../services/users.service';
-import { UserItemSchema, UserInsertSchema, UserUpdateSchema, UserRoleUpdateSchema, UserDeleteSchema, UserQuerySchema, UserQuery } from '../schemas/users.schema';
-import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
-import { checkTenant } from '../services/auth.service';
+import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
+import * as usersService from '../../services/saas/users.service';
+import { UserItemSchema, UserInsertSchema, UserUpdateSchema, UserRoleUpdateSchema, UserDeleteSchema, UserQuerySchema, UserQuery } from '../../schemas/saas/users.schema';
+import { IdMessageSchema, ErrorSchema } from '../../schemas/common.schema';
+import { checkTenant } from '../../services/saas/auth.service';
 import { Type } from '@sinclair/typebox';
 
 export default async function usersRoutes(fastify: FastifyInstance) {
