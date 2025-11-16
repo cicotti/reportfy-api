@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { supabase } from '@/lib/supabase';
-import { UnauthorizedError } from '@/lib/errors';
+import { supabase } from '../lib/supabase';
+import { UnauthorizedError } from '../lib/errors';
 
 export interface AuthenticatedRequest extends FastifyRequest {
   user?: {

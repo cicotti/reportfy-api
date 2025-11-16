@@ -1,5 +1,5 @@
 import { Type, Static } from '@sinclair/typebox';
-import { RoleSchema } from '@/schemas/common.schema';
+import { RoleSchema } from '../common.schema';
 
 export const UserItemSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),

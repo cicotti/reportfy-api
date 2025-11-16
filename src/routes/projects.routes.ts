@@ -1,9 +1,9 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
-import * as projectsService from '@/services/projects.service';
+import * as projectsService from '../services/projects.service';
 import { Type } from '@sinclair/typebox';
-import { ProjectWithClientSchema, ProjectInsertSchema, ProjectUpdateSchema, ProjectQuerySchema } from '@/schemas/common.schema';
-import { IdMessageSchema, ErrorSchema, MessageSchema } from '@/schemas/common.schema';
+import { ProjectWithClientSchema, ProjectInsertSchema, ProjectUpdateSchema, ProjectQuerySchema } from '../schemas/common.schema';
+import { IdMessageSchema, ErrorSchema, MessageSchema } from '../schemas/common.schema';
 
 export default async function projectsRoutes(fastify: FastifyInstance) {
   // Get all projects

@@ -1,5 +1,5 @@
-import { createAuthenticatedClient } from '@/lib/supabase';
-import { getCurrentWeekStart, getNextWeekEnd, getNextWeekStart } from '@/lib/utils';
+import { createAuthenticatedClient } from '../lib/supabase';
+import { getCurrentWeekStart, getNextWeekEnd, getNextWeekStart } from '../lib/utils';
 
 export interface Weather {
   id: string;

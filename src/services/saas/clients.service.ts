@@ -1,7 +1,7 @@
-import { createAuthenticatedSaasClient } from '@/lib/supabase';
+import { createAuthenticatedSaasClient } from '../../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { ClientListResult, ClientInsertBody, ClientUpdateBody, ClientDeleteBody, ClientQuery } from '@/schemas/saas/clients.schema';
-import { ApiError } from '@/lib/errors';
+import { ClientListResult, ClientInsertBody, ClientUpdateBody, ClientDeleteBody, ClientQuery } from '../../schemas/saas/clients.schema';
+import { ApiError } from '../../lib/errors';
 
 export const fetchClients = async (authToken: string, queryString?: ClientQuery): Promise<ClientListResult[]> => {
   try {

@@ -1,9 +1,9 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
-import * as clientsService from '@/services/saas/clients.service';
-import { ClientItemSchema, ClientInsertSchema, ClientUpdateSchema, ClientDeleteSchema, ClientQuerySchema, ClientQuery } from '@/schemas/saas/clients.schema';
-import { IdMessageSchema, ErrorSchema } from '@/schemas/common.schema';
-import { checkTenant } from '@/services/saas/auth.service';
+import * as clientsService from '../../services/saas/clients.service';
+import { ClientItemSchema, ClientInsertSchema, ClientUpdateSchema, ClientDeleteSchema, ClientQuerySchema, ClientQuery } from '../../schemas/saas/clients.schema';
+import { IdMessageSchema, ErrorSchema } from '../../schemas/common.schema';
+import { checkTenant } from '../../services/saas/auth.service';
 import { Type } from '@sinclair/typebox';
 
 export default async function clientsRoutes(fastify: FastifyInstance) {
