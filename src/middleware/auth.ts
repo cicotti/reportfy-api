@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { supabase } from '../lib/supabase';
 import { ApiError, UnauthorizedError } from '../lib/errors';
-import { checkTenant } from '@/services/saas/tenants.services';
+import { checkTenant } from '../services/saas/tenants.services';
 
 export interface AuthenticatedRequest extends FastifyRequest {
   user?: {
