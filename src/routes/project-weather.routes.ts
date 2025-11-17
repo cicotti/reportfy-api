@@ -4,7 +4,6 @@ import * as weatherService from '../services/project-weather.service';
 import { Type } from '@sinclair/typebox';
 import { WeatherItemSchema, WeatherSyncSchema, WeatherProjectIdParamSchema } from '../schemas/project-weather.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
-import { checkTenant } from '../services/saas/tenants.services';
 
 export default async function weatherRoutes(fastify: FastifyInstance) {
   fastify.get('/:projectId', {

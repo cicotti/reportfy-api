@@ -4,7 +4,6 @@ import * as projectsService from '../services/projects.service';
 import { Type } from '@sinclair/typebox';
 import { ProjectItemSchema, ProjectInsertSchema, ProjectUpdateSchema, ProjectDeleteSchema, ProjectQuerySchema, ProjectIdParamSchema } from '../schemas/projects.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
-import { checkTenant } from '../services/saas/tenants.services';
 
 export default async function projectsRoutes(fastify: FastifyInstance) {
   fastify.get('/', {

@@ -4,7 +4,6 @@ import * as informativeTypesService from '../services/informative-types.service'
 import { Type } from '@sinclair/typebox';
 import { InformativeTypeItemSchema, InformativeTypeInsertSchema, InformativeTypeUpdateSchema, InformativeTypeDeleteSchema, InformativeTypeQuerySchema } from '../schemas/informative-types.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
-import { checkTenant } from '../services/saas/tenants.services';
 
 export default async function informativeTypesRoutes(fastify: FastifyInstance) {
   fastify.get('/', {

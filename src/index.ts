@@ -7,7 +7,6 @@ import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
 // SaaS Routes
-import tenantsRoutes from './routes/saas/tenants.routes';
 import authRoutes from './routes/saas/auth.routes';
 import companiesRoutes from './routes/saas/companies.routes';
 import usersRoutes from './routes/saas/users.routes';
@@ -70,7 +69,6 @@ async function start() {
         ],
         tags: [
           // SaaS Tags
-          //{ name: 'tenants', description: 'Gerenciamento de tenants' },
           { name: 'auth', description: 'Autenticação e gerenciamento de usuários' },
           { name: 'companies', description: 'Gerenciamento de empresas' },
           { name: 'users', description: 'Gerenciamento de usuários' },
@@ -107,7 +105,6 @@ async function start() {
     fastify.get('/', { schema: { hide: true } }, async () => { return { status: 'Reportfy API is accessible.' } });
 
     // Register SaaS routes
-    await fastify.register(tenantsRoutes, { prefix: '/api/tenants' });
     await fastify.register(authRoutes, { prefix: '/api/auth' });
     await fastify.register(companiesRoutes, { prefix: '/api/companies' });
     await fastify.register(usersRoutes, { prefix: '/api/users' });

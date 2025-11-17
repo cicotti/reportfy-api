@@ -3,7 +3,6 @@ import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as projectTasksService from '../services/project-tasks.service';
 import { ProjectTaskItemSchema, ProjectTaskInsertSchema, ProjectTaskUpdateSchema, ProjectTaskDeleteSchema, ProjectTaskProjectIdParamSchema } from '../schemas/project-tasks.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
-import { checkTenant } from '../services/saas/tenants.services';
 import { Type } from '@sinclair/typebox';
 
 export default async function projectTasksRoutes(fastify: FastifyInstance) {

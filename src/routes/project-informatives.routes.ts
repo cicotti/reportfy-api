@@ -10,7 +10,6 @@ import {
   ProjectInformativeProjectIdParamSchema
 } from '../schemas/project-informatives.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
-import { checkTenant } from '../services/saas/tenants.services';
 
 export default async function projectInformativesRoutes(fastify: FastifyInstance) {
   fastify.get('/:projectId', {
