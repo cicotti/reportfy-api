@@ -51,8 +51,14 @@ export const ProjectDeleteSchema = Type.Object({
 export type ProjectDeleteBody = Static<typeof ProjectDeleteSchema>;
 
 export const ProjectQuerySchema = Type.Object({
-  project_id: Type.Optional(Type.String({ format: 'uuid' })),
-  client_id: Type.Optional(Type.String({ format: 'uuid' }))
+  project_id: Type.Optional(Type.String({ 
+    format: 'uuid',
+    description: 'ID do projeto para filtrar um projeto específico'
+  })),
+  client_id: Type.Optional(Type.String({ 
+    format: 'uuid',
+    description: 'ID do cliente para filtrar projetos de um cliente específico'
+  }))
 });
 
 export type ProjectQuery = Static<typeof ProjectQuerySchema>;
