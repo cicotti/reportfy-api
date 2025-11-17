@@ -6,13 +6,15 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
+// Tools Routes
+import toolsRoutes from './routes/tools.routes';
+import realtimeRoutes from './routes/realtime.routes';
 // SaaS Routes
 import authRoutes from './routes/saas/auth.routes';
 import companiesRoutes from './routes/saas/companies.routes';
 import usersRoutes from './routes/saas/users.routes';
 import clientsRoutes from './routes/saas/clients.routes';
 // Specific Routes
-import toolsRoutes from './routes/tools.routes';
 import informativeTypesRoutes from './routes/informative-types.routes';
 import projectsRoutes from './routes/projects.routes';
 import projectTasksRoutes from './routes/project-tasks.routes';
@@ -68,19 +70,21 @@ async function start() {
           },
         ],
         tags: [
+          // Tools Tags
+          //{ name: 'tools', description: 'Ferramentas auxiliares' },
+          { name: 'realtime', description: 'Eventos em tempo real via SSE' },
           // SaaS Tags
           { name: 'auth', description: 'Autenticação e gerenciamento de usuários' },
           { name: 'companies', description: 'Gerenciamento de empresas' },
           { name: 'users', description: 'Gerenciamento de usuários' },
           { name: 'clients', description: 'Gerenciamento de clientes' },
           // Specific Tags
-          //{ name: 'tools', description: 'Ferramentas auxiliares' },
           { name: 'informative-types', description: 'Gerenciamento de tipos de informativos' },
           { name: 'projects', description: 'Gerenciamento de projetos' },
           { name: 'project-tasks', description: 'Gerenciamento de tarefas de projetos' },
           { name: 'project-weathers', description: 'Informações meteorológicas' },
           { name: 'project-photos', description: 'Upload e gerenciamento de fotos' },          
-          { name: 'project-informatives', description: 'Gerenciamento de informativos de projetos' },
+          { name: 'project-informatives', description: 'Gerenciamento de informativos de projetos' },          
         ],
         components: {
           securitySchemes: {
@@ -104,13 +108,15 @@ async function start() {
 
     fastify.get('/', { schema: { hide: true } }, async () => { return { status: 'Reportfy API is accessible.' } });
 
+    // Register tools routes
+    await fastify.register(toolsRoutes, { prefix: '/api/tools' });
+    await fastify.register(realtimeRoutes, { prefix: '/api/realtime' });
     // Register SaaS routes
     await fastify.register(authRoutes, { prefix: '/api/auth' });
     await fastify.register(companiesRoutes, { prefix: '/api/companies' });
     await fastify.register(usersRoutes, { prefix: '/api/users' });
     await fastify.register(clientsRoutes, { prefix: '/api/clients' });
     // Register specific routes
-    await fastify.register(toolsRoutes, { prefix: '/api/tools' });
     await fastify.register(informativeTypesRoutes, { prefix: '/api/informative-types' });
     await fastify.register(projectsRoutes, { prefix: '/api/projects' });
     await fastify.register(projectTasksRoutes, { prefix: '/api/project-tasks' });    
