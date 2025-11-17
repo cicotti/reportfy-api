@@ -50,31 +50,15 @@ export const fetchProjects = async (authToken: string, queryString?: ProjectQuer
       }
     }
 
-    const projectsWithData: ProjectListResult[] = projects.map((project) => {
-      const result: any = {
-        id: project.id,
-        company_id: project.company_id,
+    return projects.map((project) => {
+      return {
+        ...project,
         client: { 
-            id: project.client_id, 
-            name: clientsMap[project.client_id].name 
-          },
-        name: project.name,
-        planned_start: project.planned_start,
-        planned_end: project.planned_end,
-        actual_start: project.actual_start,
-        actual_end: project.actual_end,
-        status: project.status,
-        is_active: project.is_active,
-        created_by: project.created_by,
-        created_at: project.created_at,
-        updated_by: project.updated_by,
-        updated_at: project.updated_at               
+          id: project.client_id, 
+          name: clientsMap[project.client_id].name 
+        }
       } as ProjectListResult;
-
-      return result;
     });
-
-    return projectsWithData;
   } catch (error: any) {
     console.error("projects.fetchProjects error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
