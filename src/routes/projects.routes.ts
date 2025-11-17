@@ -1,9 +1,9 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as projectsService from '../services/projects.service';
-import { Type } from '@sinclair/typebox';
-import { ProjectItemSchema, ProjectInsertSchema, ProjectUpdateSchema, ProjectDeleteSchema, ProjectQuerySchema, ProjectIdParamSchema } from '../schemas/projects.schema';
+import { ProjectItemSchema, ProjectInsertSchema, ProjectUpdateSchema, ProjectDeleteSchema, ProjectQuerySchema, ProjectQuery } from '../schemas/projects.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
+import { Type } from '@sinclair/typebox';
 
 export default async function projectsRoutes(fastify: FastifyInstance) {
   fastify.get('/', {
@@ -20,37 +20,9 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { client_id } = request.query as { client_id?: string };
-      const projects = await projectsService.fetchProjects(request.authToken!, client_id);
-      return reply.code(200).send(projects);
-    } catch (error: any) {
-      return reply.code(500).send({ type: error.type, message: error.message });
-    }
-  });
-
-  fastify.get('/:id', {
-    preHandler: authenticate,
-    schema: {
-      tags: ['projects'],
-      description: 'Busca um projeto específico por ID',
-      security: [{ bearerAuth: [] }],
-      params: ProjectIdParamSchema,
-      response: {
-        200: ProjectItemSchema,
-        404: ErrorSchema,
-        500: ErrorSchema
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
-    try {
-      const { id } = request.params as { id: string };
-      const project = await projectsService.fetchProject(request.authToken!, id);
-      
-      if (!project) {
-        return reply.code(404).send({ type: 'validation', message: 'Projeto não encontrado' });
-      }
-
-      return reply.code(200).send(project);
+      const query = request.query as ProjectQuery;
+      const result = await projectsService.fetchProjects(request.authToken!, query);
+      return reply.code(200).send(result);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }

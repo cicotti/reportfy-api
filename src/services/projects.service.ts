@@ -1,9 +1,9 @@
 import { createAuthenticatedClient, createAuthenticatedSaasClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { ProjectListResult, ProjectInsertBody, ProjectUpdateBody } from '../schemas/projects.schema';
+import { ProjectListResult, ProjectInsertBody, ProjectUpdateBody, ProjectQuery } from '../schemas/projects.schema';
 import { ApiError } from '../lib/errors';
 
-export const fetchProjects = async (authToken: string, clientId?: string): Promise<ProjectListResult[]> => {
+export const fetchProjects = async (authToken: string, queryString?: ProjectQuery): Promise<ProjectListResult[]> => {
   try {
     const client = createAuthenticatedClient(authToken);
     const saasClient = createAuthenticatedSaasClient(authToken);
@@ -13,9 +13,14 @@ export const fetchProjects = async (authToken: string, clientId?: string): Promi
       .select("*")
       .eq("is_soft_deleted", false)
       .order("name", { ascending: true });
-
-    if (clientId) {
-      query = query.eq("client_id", clientId);
+    
+    if (queryString) {
+      if (queryString.project_id) {
+        query = query.eq("id", queryString.project_id);
+      }
+      if (queryString.client_id) {
+        query = query.eq("client_id", queryString.client_id);
+      }
     }
 
     const { data, error } = await query;
@@ -46,10 +51,27 @@ export const fetchProjects = async (authToken: string, clientId?: string): Promi
     }
 
     const projectsWithData: ProjectListResult[] = projects.map((project) => {
-      return {
-        ...project,
-        client_name: clientsMap[project.client_id]?.name || "",
+      const result: any = {
+        id: project.id,
+        company_id: project.company_id,
+        client: { 
+            id: project.client_id, 
+            name: clientsMap[project.client_id].name 
+          },
+        name: project.name,
+        planned_start: project.planned_start,
+        planned_end: project.planned_end,
+        actual_start: project.actual_start,
+        actual_end: project.actual_end,
+        status: project.status,
+        is_active: project.is_active,
+        created_by: project.created_by,
+        created_at: project.created_at,
+        updated_by: project.updated_by,
+        updated_at: project.updated_at               
       } as ProjectListResult;
+
+      return result;
     });
 
     return projectsWithData;
@@ -59,66 +81,20 @@ export const fetchProjects = async (authToken: string, clientId?: string): Promi
   }
 };
 
-export const fetchProject = async (authToken: string, projectId: string): Promise<ProjectListResult | null> => {
+export const createProject = async (authToken: string, data: ProjectInsertBody): Promise<{ id: string }> => {
   try {
-    const client = createAuthenticatedClient(authToken);
-    const saasClient = createAuthenticatedSaasClient(authToken);
+    const saasClient = createAuthenticatedClient(authToken);
+    const { data: { user }, error: userError } = await saasClient.auth.getUser();
+    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
     
-    const { data, error } = await client
-      .from("projects")
-      .select("*")
-      .eq("id", projectId)
-      .eq("is_soft_deleted", false)
-      .single();
+    const client = createAuthenticatedClient(authToken);
 
-    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
-    if (!data) return null;
-
-    let clientName = "";
-    if ((data as any).client_id) {
-      const { data: clientData, error: clientError } = await saasClient
-        .from("clients")
-        .select("name")
-        .eq("id", (data as any).client_id)
-        .single();
-
-      if (clientError) throw new ApiError("query", translateErrorCode(clientError.code, "database", "pt"));
-      if (clientData) clientName = (clientData as any).name || "";
-    }
-
-    let location_lat: string | undefined;
-    let location_long: string | undefined;
-    if (data.location && typeof data.location === "string") {
-      const raw = data.location.replace(/[()]/g, "");
-      const parts = raw.split(",");
-      if (parts.length >= 2) {
-        location_lat = parts[0];
-        location_long = parts[1];
-      }
-    }
-
-    return {
+    const payload = {
       ...data,
-      client_name: clientName,
-      location_lat,
-      location_long,
-    } as ProjectListResult;
-  } catch (error: any) {
-    console.error("projects.fetchProject error:", error);
-    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
-  }
-};
-
-export const createProject = async (authToken: string, projectData: ProjectInsertBody): Promise<{ id: string }> => {
-  try {
-    const client = createAuthenticatedClient(authToken);
-    
-    const payload: any = { ...projectData };
-    if (projectData.location && projectData.location.lat && projectData.location.long) {
-      payload.location = `(${projectData.location.lat},${projectData.location.long})`;
-    } else {
-      payload.location = `(0,0)`;
-    }
+      location: `(${data.location.lat},${data.location.long})`,
+      created_by: user.id,
+      created_at: new Date().toISOString()
+    };
 
     const { data: insertData, error } = await client
       .from("projects")

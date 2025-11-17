@@ -1,10 +1,6 @@
 import { createAuthenticatedClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { 
-  InformativeTypeListResult, 
-  InformativeTypeInsertBody, 
-  InformativeTypeUpdateBody
-} from '../schemas/informative-types.schema';
+import { InformativeTypeListResult, InformativeTypeInsertBody, InformativeTypeUpdateBody } from '../schemas/informative-types.schema';
 import { ApiError } from '../lib/errors';
 
 export const fetchInformativeTypes = async (authToken: string, companyId?: string): Promise<InformativeTypeListResult[]> => {
@@ -35,11 +31,10 @@ export const fetchInformativeTypes = async (authToken: string, companyId?: strin
 export const createInformativeType = async (authToken: string, data: InformativeTypeInsertBody): Promise<{ id: string }> => {
   try {
     const saasClient = createAuthenticatedClient(authToken);
-    
     const { data: { user }, error: userError } = await saasClient.auth.getUser();
     if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
     
-    const insertPayload = {
+    const payload = {
       ...data,
       created_by: user.id,
       created_at: new Date().toISOString()
@@ -47,7 +42,7 @@ export const createInformativeType = async (authToken: string, data: Informative
     
     const { data: insertData, error } = await saasClient
       .from("informative_types")
-      .insert([insertPayload])
+      .insert([payload])
       .select("id")
       .single();
     
