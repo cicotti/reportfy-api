@@ -50,13 +50,13 @@ export const createProjectInformative = async (authToken: string, data: ProjectI
   }
 };
 
-export const updateProjectInformative = async (authToken: string, id: string, data: ProjectInformativeUpdateBody): Promise<void> => {
+export const updateProjectInformative = async (authToken: string, id: string, informativeData: Partial<ProjectInformativeUpdateBody>): Promise<void> => {
   try {
     const client = createAuthenticatedClient(authToken);
     
     const { error } = await client
       .from("project_informatives")
-      .update(data)
+      .update(informativeData)
       .eq("id", id);
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));

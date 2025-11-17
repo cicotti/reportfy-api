@@ -6,7 +6,6 @@ import { ApiError } from '../lib/errors';
 export const fetchProjects = async (authToken: string, queryString?: ProjectQuery): Promise<ProjectListResult[]> => {
   try {
     const client = createAuthenticatedClient(authToken);
-    const saasClient = createAuthenticatedSaasClient(authToken);
     
     let query = client
       .from("projects")
@@ -35,6 +34,7 @@ export const fetchProjects = async (authToken: string, queryString?: ProjectQuer
 
     let clientsMap: Record<string, { name: string }> = {};
     if (clientIds.length > 0) {
+      const saasClient = createAuthenticatedSaasClient(authToken);
       const { data: clientsData, error: clientsError } = await saasClient
         .from("clients")
         .select("id, name")

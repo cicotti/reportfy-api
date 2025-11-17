@@ -16,9 +16,9 @@ export const getProjectPhotos = async (authToken: string, projectId: string): Pr
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
-    return (data as PhotoListResult[]) || [];
+    return (data || []) as PhotoListResult[];
   } catch (error: any) {
-    console.error("photos.getProjectPhotos error:", error);
+    console.error("project-photos.getProjectPhotos error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
@@ -77,7 +77,7 @@ export const uploadProjectPhoto = async (
 
     return data as PhotoListResult;
   } catch (error: any) {
-    console.error("photos.uploadProjectPhoto error:", error);
+    console.error("project-photos.uploadProjectPhoto error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
@@ -103,7 +103,7 @@ export const deleteProjectPhoto = async (authToken: string, photoId: string, pho
         .remove([filePath]);
     }
   } catch (error: any) {
-    console.error("photos.deleteProjectPhoto error:", error);
+    console.error("project-photos.deleteProjectPhoto error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };

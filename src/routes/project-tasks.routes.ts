@@ -1,18 +1,18 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as projectTasksService from '../services/project-tasks.service';
-import { ProjectTaskItemSchema, ProjectTaskInsertSchema, ProjectTaskUpdateSchema, ProjectTaskDeleteSchema, ProjectTaskProjectIdParamSchema } from '../schemas/project-tasks.schema';
+import { ProjectTaskItemSchema, ProjectTaskInsertSchema, ProjectTaskUpdateSchema, ProjectTaskDeleteSchema, ProjectTaskQuery, ProjectTaskQuerySchema } from '../schemas/project-tasks.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
 import { Type } from '@sinclair/typebox';
 
 export default async function projectTasksRoutes(fastify: FastifyInstance) {
-  fastify.get('/:projectId', {
+  fastify.get('/', {
     preHandler: authenticate,
     schema: {
       tags: ['project-tasks'],
       description: 'Lista todas as tarefas de um projeto',
       security: [{ bearerAuth: [] }],
-      params: ProjectTaskProjectIdParamSchema,
+      querystring: ProjectTaskQuerySchema,
       response: {
         200: Type.Array(ProjectTaskItemSchema),
         500: ErrorSchema
@@ -20,8 +20,8 @@ export default async function projectTasksRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { projectId } = request.params as { projectId: string };
-      const result = await projectTasksService.fetchProjectTasks(request.authToken!, projectId);
+      const query = request.query as ProjectTaskQuery;
+      const result = await projectTasksService.fetchProjectTasks(request.authToken!, query);
       return reply.code(200).send(result);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
@@ -64,9 +64,9 @@ export default async function projectTasksRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const data = request.body as any;
-      await projectTasksService.updateProjectTask(request.authToken!, data);
-      return reply.code(200).send({ id: data.id, message: 'Tarefa atualizada com sucesso' });
+      const { id, ...taskData } = request.body as any;
+      await projectTasksService.updateProjectTask(request.authToken!, id, taskData);
+      return reply.code(200).send({ id, message: 'Tarefa atualizada com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
@@ -86,9 +86,9 @@ export default async function projectTasksRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const data = request.body as any;
-      await projectTasksService.deleteProjectTask(request.authToken!, data);
-      return reply.code(200).send({ id: data.id, message: 'Tarefa excluída com sucesso' });
+      const { id } = request.body as any;
+      await projectTasksService.deleteProjectTask(request.authToken!, id);
+      return reply.code(200).send({ id, message: 'Tarefa excluída com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }

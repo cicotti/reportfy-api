@@ -20,9 +20,9 @@ export const getProjectWeather = async (authToken: string, projectId: string): P
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
-    return (data as WeatherListResult[]) || [];
+    return (data || []) as WeatherListResult[];
   } catch (error: any) {
-    console.error("weather.getProjectWeather error:", error);
+    console.error("project-weather.getProjectWeather error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
@@ -70,7 +70,7 @@ export async function fetchWeatherFromAPI(
     }
     return await response.json();
   } catch (error: any) {
-    console.error("weather.fetchWeatherFromAPI error:", error);
+    console.error("project-weather.fetchWeatherFromAPI error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro ao buscar clima da API");
   }
 }
@@ -119,7 +119,7 @@ export const syncProjectWeatherFromAPI = async (
       }
     }
   } catch (error: any) {
-    console.error("weather.syncProjectWeatherFromAPI error:", error);
+    console.error("project-weather.syncProjectWeatherFromAPI error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
