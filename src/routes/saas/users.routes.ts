@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 import * as usersService from '../../services/saas/users.service';
-import { UserItemSchema, UserInsertSchema, UserUpdateSchema, UserRoleUpdateSchema, UserDeleteSchema, UserQuerySchema, UserQuery } from '../../schemas/saas/users.schema';
+import { UserItemSchema, UserInsertSchema, UserUpdateSchema, UserRoleUpdateSchema, UserDeleteSchema, UserQuerySchema, UserQuery, UserSettingsSchema, UserSettingsUpdateSchema, AvatarUploadResultSchema } from '../../schemas/saas/users.schema';
 import { IdMessageSchema, ErrorSchema } from '../../schemas/common.schema';
 import { Type } from '@sinclair/typebox';
 
@@ -111,6 +111,81 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       const data = request.body as any;
       await usersService.updateUserRole(request.authToken!, data);
       return reply.code(200).send({ id: data.user_id, message: 'Função atualizada com sucesso' });
+    } catch (error: any) {
+      return reply.code(500).send({ type: error.type, message: error.message });
+    }
+  });
+
+  fastify.put('/avatar', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['users'],
+      description: 'Faz upload do avatar do usuário (multipart/form-data)',
+      security: [{ bearerAuth: [] }],
+      consumes: ['multipart/form-data'],
+      response: {
+        200: AvatarUploadResultSchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request: any, reply) => {
+    try {
+      const data = await request.file();
+      
+      if (!data) {
+        return reply.code(500).send({ type: 'validation', message: 'Arquivo não fornecido' });
+      }
+
+      const buffer = await data.toBuffer();
+      const result = await usersService.uploadAvatar(
+        (request as AuthenticatedRequest).authToken!,
+        buffer,
+        data.filename
+      );
+
+      return reply.code(200).send(result);
+    } catch (error: any) {
+      return reply.code(500).send({ type: error.type, message: error.message });
+    }
+  });
+
+  fastify.get('/settings', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['users'],
+      description: 'Busca as configurações do usuário autenticado',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: UserSettingsSchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
+    try {
+      const settings = await usersService.getUserSettings(request.authToken!);
+      return reply.code(200).send(settings);
+    } catch (error: any) {
+      return reply.code(500).send({ type: error.type, message: error.message });
+    }
+  });
+
+  fastify.put('/settings', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['users'],
+      description: 'Atualiza as configurações do usuário autenticado',
+      security: [{ bearerAuth: [] }],
+      body: UserSettingsUpdateSchema,
+      response: {
+        200: IdMessageSchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
+    try {
+      const data = request.body as any;
+      await usersService.updateUserSettings(request.authToken!, data);
+      return reply.code(200).send({ id: 'settings', message: 'Configurações atualizadas com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }

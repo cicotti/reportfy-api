@@ -1,6 +1,6 @@
 import { createAuthenticatedSaasClient } from '../../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { UserListResult, UserInsertBody, UserUpdateBody, UserRoleUpdateBody, UserQuery, UserDeleteBody } from '../../schemas/saas/users.schema';
+import { UserListResult, UserInsertBody, UserUpdateBody, UserRoleUpdateBody, UserQuery, UserDeleteBody, UserSettingsResult, UserSettingsUpdateBody, AvatarUploadResult } from '../../schemas/saas/users.schema';
 import { ApiError } from '../../lib/errors';
 
 export const fetchUsers = async (authToken: string, queryString?: UserQuery): Promise<UserListResult[]> => {
@@ -173,6 +173,116 @@ export const updateUserRole = async (authToken: string, data: UserRoleUpdateBody
     if (insError) throw new ApiError("query", translateErrorCode(insError.code, "database", "pt"));
   } catch (error: any) {
     console.error("users.updateUserRole error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
+  }
+};
+
+export const getUserSettings = async (authToken: string): Promise<UserSettingsResult> => {
+  try {
+    const saasClient = createAuthenticatedSaasClient(authToken);
+    const { data: { user }, error: userError } = await saasClient.auth.getUser();
+    
+    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
+
+    const { data, error } = await saasClient
+      .from("user_settings")
+      .select("*")
+      .eq("user_id", user.id)
+      .single();
+
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
+
+    return data as UserSettingsResult;
+  } catch (error: any) {
+    console.error("users.getUserSettings error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
+  }
+};
+
+export const updateUserSettings = async (authToken: string, data: UserSettingsUpdateBody): Promise<void> => {
+  try {
+    const saasClient = createAuthenticatedSaasClient(authToken);
+    const { data: { user }, error: userError } = await saasClient.auth.getUser();
+    
+    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
+
+    const { error } = await saasClient
+      .from("user_settings")
+      .update(data)
+      .eq("user_id", user.id);
+
+    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
+  } catch (error: any) {
+    console.error("users.updateUserSettings error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
+  }
+};
+
+export const uploadAvatar = async (
+  authToken: string,
+  file: Buffer,
+  fileName: string
+): Promise<AvatarUploadResult> => {
+  try {
+    const saasClient = createAuthenticatedSaasClient(authToken);
+    const { data: { user }, error: userError } = await saasClient.auth.getUser();
+    
+    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
+
+    // Delete old avatar if exists
+    const { data: profileData } = await saasClient
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    if (profileData?.avatar_url) {
+      try {
+        const url = new URL(profileData.avatar_url);
+        const pathParts = url.pathname.split("/avatars/");
+        if (pathParts[1]) {
+          await saasClient.storage.from("avatars").remove([pathParts[1]]);
+        }
+      } catch (e) {
+        console.warn("Warning: Failed to delete old avatar:", e);
+      }
+    }
+
+    // Upload new avatar
+    const fileExt = fileName.split(".").pop();
+    const storagePath = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    const { data: uploadData, error: uploadError } = await saasClient.storage
+      .from("avatars")
+      .upload(storagePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) throw new ApiError("critical", translateErrorCode(uploadError.message, "storage", "pt"));
+
+    const { data: urlData } = saasClient.storage
+      .from("avatars")
+      .getPublicUrl(storagePath);
+
+    // Update profile with new avatar URL
+    const { error: updateError } = await saasClient
+      .from("profiles")
+      .update({ avatar_url: urlData.publicUrl })
+      .eq("id", user.id);
+
+    if (updateError) {
+      // Rollback: delete uploaded file
+      await saasClient.storage.from("avatars").remove([storagePath]);
+      throw new ApiError("query", translateErrorCode(updateError.code, "database", "pt"));
+    }
+
+    return {
+      avatar_url: urlData.publicUrl,
+      message: "Avatar atualizado com sucesso"
+    };
+  } catch (error: any) {
+    console.error("users.uploadAvatar error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };

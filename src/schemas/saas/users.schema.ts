@@ -52,3 +52,32 @@ export const UserQuerySchema = Type.Object({
 });
 
 export type UserQuery = Static<typeof UserQuerySchema>;
+
+export const UserSettingsSchema = Type.Object({
+  id: Type.String({ format: 'uuid' }),
+  user_id: Type.String({ format: 'uuid' }),
+  email_notifications: Type.Boolean(),
+  marketing_emails: Type.Boolean(),
+  theme: Type.Union([Type.Literal('light'), Type.Literal('dark'), Type.Literal('system')]),
+  language: Type.String({ minLength: 2, maxLength: 5 }),
+  created_at: Type.String({ format: 'date-time' }),
+  updated_at: Type.String({ format: 'date-time' })
+});
+
+export type UserSettingsResult = Static<typeof UserSettingsSchema>;
+
+export const UserSettingsUpdateSchema = Type.Object({
+  email_notifications: Type.Optional(Type.Boolean()),
+  marketing_emails: Type.Optional(Type.Boolean()),
+  theme: Type.Optional(Type.Union([Type.Literal('light'), Type.Literal('dark'), Type.Literal('system')])),
+  language: Type.Optional(Type.String({ minLength: 2, maxLength: 5 }))
+});
+
+export type UserSettingsUpdateBody = Static<typeof UserSettingsUpdateSchema>;
+
+export const AvatarUploadResultSchema = Type.Object({
+  avatar_url: Type.String({ format: 'uri' }),
+  message: Type.String()
+});
+
+export type AvatarUploadResult = Static<typeof AvatarUploadResultSchema>;
