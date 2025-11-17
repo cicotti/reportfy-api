@@ -1,4 +1,4 @@
-import { createAuthenticatedSaasClient } from '../lib/supabase';
+import { createAuthenticatedClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
 import { 
   InformativeTypeListResult, 
@@ -9,13 +9,13 @@ import { ApiError } from '../lib/errors';
 
 export const fetchInformativeTypes = async (authToken: string, companyId?: string): Promise<InformativeTypeListResult[]> => {
   try {
-    const saasClient = createAuthenticatedSaasClient(authToken);
+    const saasClient = createAuthenticatedClient(authToken);
     
     let query = saasClient
       .from("informative_types")
       .select("*")
-      .order("display_order", { ascending: true })
-      .order("name", { ascending: true });
+      .order("company_id", { ascending: true })
+      .order("display_order", { ascending: true });
 
     if (companyId) {
       query = query.eq("company_id", companyId);
@@ -34,11 +34,20 @@ export const fetchInformativeTypes = async (authToken: string, companyId?: strin
 
 export const createInformativeType = async (authToken: string, data: InformativeTypeInsertBody): Promise<{ id: string }> => {
   try {
-    const saasClient = createAuthenticatedSaasClient(authToken);
+    const saasClient = createAuthenticatedClient(authToken);
+    
+    const { data: { user }, error: userError } = await saasClient.auth.getUser();
+    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
+    
+    const insertPayload = {
+      ...data,
+      created_by: user.id,
+      created_at: new Date().toISOString()
+    };
     
     const { data: insertData, error } = await saasClient
       .from("informative_types")
-      .insert([data])
+      .insert([insertPayload])
       .select("id")
       .single();
     
@@ -53,7 +62,7 @@ export const createInformativeType = async (authToken: string, data: Informative
 
 export const updateInformativeType = async (authToken: string, id: string, data: InformativeTypeUpdateBody): Promise<void> => {
   try {
-    const saasClient = createAuthenticatedSaasClient(authToken);
+    const saasClient = createAuthenticatedClient(authToken);
     
     const { error } = await saasClient
       .from("informative_types")
@@ -69,7 +78,7 @@ export const updateInformativeType = async (authToken: string, id: string, data:
 
 export const deleteInformativeType = async (authToken: string, id: string): Promise<void> => {
   try {
-    const saasClient = createAuthenticatedSaasClient(authToken);
+    const saasClient = createAuthenticatedClient(authToken);
     
     const { error } = await saasClient
       .from("informative_types")
