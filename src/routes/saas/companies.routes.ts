@@ -20,7 +20,6 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const result = await companiesService.fetchCompanies(request.authToken!);
       return reply.code(200).send(result);
     } catch (error: any) {
@@ -42,7 +41,6 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       var result = await companiesService.createCompany(request.authToken!, data);
       return reply.code(201).send({ id: result.id, message: 'Empresa criada com sucesso' });
@@ -65,7 +63,6 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       await companiesService.updateCompany(request.authToken!, data);
       return reply.code(200).send({ id: data.id, message: 'Empresa atualizada com sucesso' });
@@ -88,7 +85,6 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       await companiesService.deleteCompany(request.authToken!, data);
       return reply.code(200).send({ id: data.id, message: 'Empresa excluída com sucesso' });

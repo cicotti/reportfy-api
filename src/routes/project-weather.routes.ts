@@ -21,7 +21,6 @@ export default async function weatherRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { projectId } = request.params as { projectId: string };
       const weather = await weatherService.getProjectWeather(request.authToken!, projectId);
       return reply.code(200).send(weather);
@@ -45,7 +44,6 @@ export default async function weatherRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { projectId } = request.params as { projectId: string };
       const { latitude, longitude } = request.body as { latitude: number; longitude: number };
       

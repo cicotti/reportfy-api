@@ -21,7 +21,6 @@ export default async function clientsRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const query = request.query as ClientQuery;
       const result = await clientsService.fetchClients(request.authToken!, query);
       return reply.code(200).send(result);
@@ -44,7 +43,6 @@ export default async function clientsRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       const result = await clientsService.createClient(request.authToken!, data);
       return reply.code(201).send({ id: result.id, message: 'Cliente criado com sucesso' });
@@ -67,7 +65,6 @@ export default async function clientsRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       await clientsService.updateClient(request.authToken!, data);
       return reply.code(200).send({ id: data.id, message: 'Cliente atualizado com sucesso' });
@@ -90,7 +87,6 @@ export default async function clientsRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       await clientsService.deleteClient(request.authToken!, data);
       return reply.code(200).send({ id: data.id, message: 'Cliente excluído com sucesso' });

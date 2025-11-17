@@ -27,7 +27,6 @@ export default async function projectInformativesRoutes(fastify: FastifyInstance
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { projectId } = request.params as { projectId: string };
       const informatives = await projectInformativesService.fetchProjectInformatives(request.authToken!, projectId);
       return reply.code(200).send(informatives);
@@ -50,7 +49,6 @@ export default async function projectInformativesRoutes(fastify: FastifyInstance
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const informativeData = request.body as any;
       const result = await projectInformativesService.createProjectInformative(request.authToken!, informativeData);
       return reply.code(201).send({ id: result.id, message: 'Informativo criado com sucesso' });
@@ -73,7 +71,6 @@ export default async function projectInformativesRoutes(fastify: FastifyInstance
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { id, ...informativeData } = request.body as any;
       await projectInformativesService.updateProjectInformative(request.authToken!, id, informativeData);
       return reply.code(200).send({ id, message: 'Informativo atualizado com sucesso' });
@@ -96,7 +93,6 @@ export default async function projectInformativesRoutes(fastify: FastifyInstance
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { id } = request.body as any;
       await projectInformativesService.deleteProjectInformative(request.authToken!, id);
       return reply.code(200).send({ id, message: 'Informativo excluído com sucesso' });

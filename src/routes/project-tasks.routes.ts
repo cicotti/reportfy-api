@@ -21,7 +21,6 @@ export default async function projectTasksRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { projectId } = request.params as { projectId: string };
       const result = await projectTasksService.fetchProjectTasks(request.authToken!, projectId);
       return reply.code(200).send(result);
@@ -44,7 +43,6 @@ export default async function projectTasksRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       const result = await projectTasksService.createProjectTask(request.authToken!, data);
       return reply.code(201).send({ id: result.id, message: 'Tarefa criada com sucesso' });
@@ -67,7 +65,6 @@ export default async function projectTasksRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       await projectTasksService.updateProjectTask(request.authToken!, data);
       return reply.code(200).send({ id: data.id, message: 'Tarefa atualizada com sucesso' });
@@ -90,7 +87,6 @@ export default async function projectTasksRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       await projectTasksService.deleteProjectTask(request.authToken!, data);
       return reply.code(200).send({ id: data.id, message: 'Tarefa excluída com sucesso' });

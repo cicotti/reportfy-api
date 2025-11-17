@@ -21,7 +21,6 @@ export default async function photosRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { projectId } = request.params as { projectId: string };
       const photos = await photosService.getProjectPhotos(request.authToken!, projectId);
       return reply.code(200).send(photos);
@@ -45,7 +44,6 @@ export default async function photosRoutes(fastify: FastifyInstance) {
     }
   }, async (request: any, reply) => {
     try {
-      await checkTenant((request as AuthenticatedRequest).authToken!);
       const { projectId } = request.params as { projectId: string };
       const data = await request.file();
       
@@ -85,7 +83,6 @@ export default async function photosRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { id } = request.body as any;
       
       // Busca a foto para obter a URL

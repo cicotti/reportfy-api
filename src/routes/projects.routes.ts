@@ -21,7 +21,6 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { client_id } = request.query as { client_id?: string };
       const projects = await projectsService.fetchProjects(request.authToken!, client_id);
       return reply.code(200).send(projects);
@@ -45,7 +44,6 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { id } = request.params as { id: string };
       const project = await projectsService.fetchProject(request.authToken!, id);
       
@@ -73,7 +71,6 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const projectData = request.body as any;
       const result = await projectsService.createProject(request.authToken!, projectData);
       return reply.code(201).send({ id: result.id, message: 'Projeto criado com sucesso' });
@@ -96,7 +93,6 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { id, ...projectData } = request.body as any;
       await projectsService.updateProject(request.authToken!, id, projectData);
       return reply.code(200).send({ id, message: 'Projeto atualizado com sucesso' });
@@ -119,7 +115,6 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { id } = request.body as any;
       await projectsService.deleteProject(request.authToken!, id);
       return reply.code(200).send({ id, message: 'Projeto excluído com sucesso' });

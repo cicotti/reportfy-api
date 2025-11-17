@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { supabase } from '../lib/supabase';
-import { UnauthorizedError } from '../lib/errors';
+import { ApiError, UnauthorizedError } from '../lib/errors';
+import { checkTenant } from '@/services/saas/tenants.services';
 
 export interface AuthenticatedRequest extends FastifyRequest {
   user?: {
@@ -35,12 +36,17 @@ export async function authenticate(request: AuthenticatedRequest, reply: Fastify
       email: user.email!,
     };
     request.authToken = token;
+
+    // Verifica se o tenant está ativo
+    await checkTenant(request.authToken, request.user.id);
     
   } catch (error) {
-    if (error instanceof UnauthorizedError) {
-      reply.code(401).send({ error: error.message });
+    if (error instanceof ApiError) {
+      throw error;
+    } else if (error instanceof UnauthorizedError) {
+      throw new ApiError("authentication", error.message);
     } else {
-      reply.code(500).send({ error: 'Erro ao autenticar' });
+      throw new ApiError("authentication", "Erro ao autenticar usuário");
     }
   }
 }

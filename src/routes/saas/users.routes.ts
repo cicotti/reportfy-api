@@ -21,7 +21,6 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const query = request.query as UserQuery;
       const result = await usersService.fetchUsers(request.authToken!, query);
       return reply.code(200).send(result);
@@ -44,7 +43,6 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       const result = await usersService.createUser(request.authToken!, data);
       return reply.code(201).send({ id: result.id, message: 'Usuário criado com sucesso. Email de definição de senha enviado.' });
@@ -67,7 +65,6 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       await usersService.updateProfile(request.authToken!, data);
       return reply.code(200).send({ id: data.id, message: 'Usuário atualizado com sucesso' });
@@ -90,7 +87,6 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       await usersService.deleteUser(request.authToken!, data.id);
       return reply.code(200).send({ id: data.id, message: 'Usuário excluído com sucesso' });
@@ -113,7 +109,6 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const data = request.body as any;
       await usersService.updateUserRole(request.authToken!, data);
       return reply.code(200).send({ id: data.user_id, message: 'Função atualizada com sucesso' });

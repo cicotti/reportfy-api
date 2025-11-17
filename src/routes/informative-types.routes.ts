@@ -21,7 +21,6 @@ export default async function informativeTypesRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { company_id } = request.query as { company_id?: string };
       const types = await informativeTypesService.fetchInformativeTypes(request.authToken!, company_id);
       return reply.code(200).send(types);
@@ -44,7 +43,6 @@ export default async function informativeTypesRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const typeData = request.body as any;
       const result = await informativeTypesService.createInformativeType(request.authToken!, typeData);
       return reply.code(201).send({ id: result.id, message: 'Tipo de informativo criado com sucesso' });
@@ -67,7 +65,6 @@ export default async function informativeTypesRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { id, ...typeData } = request.body as any;
       await informativeTypesService.updateInformativeType(request.authToken!, id, typeData);
       return reply.code(200).send({ id, message: 'Tipo de informativo atualizado com sucesso' });
@@ -90,7 +87,6 @@ export default async function informativeTypesRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      await checkTenant(request.authToken!);
       const { id } = request.body as any;
       await informativeTypesService.deleteInformativeType(request.authToken!, id);
       return reply.code(200).send({ id, message: 'Tipo de informativo excluído com sucesso' });
