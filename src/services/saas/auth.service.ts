@@ -191,3 +191,14 @@ export const verifyToken = async (authToken: string): Promise<TokenValidityResul
     };
   }
 };
+
+export const logout = async (authToken: string): Promise<void> => {
+  try {
+    const client = createAuthenticatedClient(authToken);
+    const { error } = await client.auth.signOut();
+    
+    if (error) throw new ApiError("authentication", translateErrorCode(error.code, "auth", "pt"));
+  } catch (error: any) {
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
+  }
+};

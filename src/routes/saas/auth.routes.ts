@@ -154,4 +154,25 @@ export default async function authRoutes(fastify: FastifyInstance) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
+
+  // Logout
+  fastify.post('/logout', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['auth'],
+      description: 'Realiza logout do usuário e invalida o token',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: MessageSchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
+    try {
+      await authService.logout(request.authToken!);
+      return reply.code(200).send({ message: 'Logout realizado com sucesso' });
+    } catch (error: any) {
+      return reply.code(500).send({ type: error.type, message: error.message });
+    }
+  });
 }
