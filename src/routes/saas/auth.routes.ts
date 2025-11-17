@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 import * as authService from '../../services/saas/auth.service';
-import { LoginBodySchema, UserSessionSchema, ProfileSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema, RefreshTokenBodySchema } from '../../schemas/saas/auth.schema';
+import { LoginBodySchema, UserSessionSchema, ProfileSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema, RefreshTokenBodySchema, TokenValiditySchema } from '../../schemas/saas/auth.schema';
 import { IdMessageSchema, ErrorSchema, MessageSchema } from '../../schemas/common.schema';
 
 export default async function authRoutes(fastify: FastifyInstance) {
@@ -128,6 +128,27 @@ export default async function authRoutes(fastify: FastifyInstance) {
     try {
       const data = request.body as any;
       const result = await authService.refreshToken(data);
+      return reply.code(200).send(result);
+    } catch (error: any) {
+      return reply.code(500).send({ type: error.type, message: error.message });
+    }
+  });
+
+  // Verify token
+  fastify.get('/verify-token', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['auth'],
+      description: 'Verifica a validade do access token',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: TokenValiditySchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
+    try {
+      const result = await authService.verifyToken(request.authToken!);
       return reply.code(200).send(result);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });

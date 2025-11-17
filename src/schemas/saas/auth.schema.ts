@@ -60,3 +60,11 @@ export const RefreshTokenBodySchema = Type.Object({
 });
 
 export type RefreshTokenBody = Static<typeof RefreshTokenBodySchema>;
+
+export const TokenValiditySchema = Type.Object({
+  valid: Type.Boolean(),
+  user_id: Type.Optional(Type.String({ format: 'uuid' })),
+  expires_at: Type.Optional(Type.Number())
+});
+
+export type TokenValidityResult = Static<typeof TokenValiditySchema>;

@@ -1,6 +1,6 @@
 import { supabase, supabaseSaas, createAuthenticatedSaasClient, createAuthenticatedClient } from '../../lib/supabase';
 import { translateErrorCode, setLanguage } from 'supabase-error-translator-js';
-import { LoginBody, UserSessionResult, ProfileResult, SignupBody, ResetPasswordBody, UpdatePasswordBody, RefreshTokenBody } from '../../schemas/saas/auth.schema';
+import { LoginBody, UserSessionResult, ProfileResult, SignupBody, ResetPasswordBody, UpdatePasswordBody, RefreshTokenBody, TokenValidityResult } from '../../schemas/saas/auth.schema';
 import { ApiError } from '../../lib/errors';
 
 export const hasAccountCreated = async (search: string) => {
@@ -168,5 +168,26 @@ export const refreshToken = async (data: RefreshTokenBody): Promise<UserSessionR
     };
   } catch (error: any) {
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
+  }
+};
+
+export const verifyToken = async (authToken: string): Promise<TokenValidityResult> => {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(authToken);
+    
+    if (error || !user) {
+      return {
+        valid: false
+      };
+    }
+
+    return {
+      valid: true,
+      user_id: user.id
+    };
+  } catch (error: any) {
+    return {
+      valid: false
+    };
   }
 };
