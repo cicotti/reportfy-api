@@ -54,3 +54,9 @@ export const UpdatePasswordBodySchema = Type.Object({
 });
 
 export type UpdatePasswordBody = Static<typeof UpdatePasswordBodySchema>;
+
+export const RefreshTokenBodySchema = Type.Object({
+  refresh_token: Type.String({ minLength: 1 })
+});
+
+export type RefreshTokenBody = Static<typeof RefreshTokenBodySchema>;

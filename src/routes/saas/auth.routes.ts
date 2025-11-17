@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 import * as authService from '../../services/saas/auth.service';
-import { LoginBodySchema, UserSessionSchema, ProfileSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema } from '../../schemas/saas/auth.schema';
+import { LoginBodySchema, UserSessionSchema, ProfileSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema, RefreshTokenBodySchema } from '../../schemas/saas/auth.schema';
 import { IdMessageSchema, ErrorSchema, MessageSchema } from '../../schemas/common.schema';
 
 export default async function authRoutes(fastify: FastifyInstance) {
@@ -14,7 +14,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       body: LoginBodySchema,
       response: {
         200: UserSessionSchema,
-        400: ErrorSchema
+        500: ErrorSchema
       }
     }
   }, async (request, reply) => {
@@ -23,7 +23,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       const result = await authService.login(data);
       return reply.code(200).send(result);
     } catch (error: any) {
-      return reply.code(400).send({ type: error.type, message: error.message });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
   
@@ -35,7 +35,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       body: SignupBodySchema,
       response: {
         201: IdMessageSchema,
-        400: ErrorSchema
+        500: ErrorSchema
       }
     }
   }, async (request, reply) => {
@@ -44,7 +44,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       const result = await authService.signup(data);
       return reply.code(201).send({ id: result.id, message: 'Conta criada com sucesso' });
     } catch (error: any) {
-      return reply.code(400).send({ type: error.type, message: error.message });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
@@ -65,7 +65,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       const user = await authService.getCurrentUser(request.authToken!);
       return reply.code(200).send(user);
     } catch (error: any) {
-      return reply.code(400).send({ type: error.type, message: error.message });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
@@ -77,7 +77,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       body: ResetPasswordBodySchema,
       response: {
         200: MessageSchema,
-        400: ErrorSchema
+        500: ErrorSchema
       }
     }
   }, async (request, reply) => {
@@ -86,7 +86,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       await authService.resetPassword(data);
       return reply.code(200).send({ message: 'Email de recuperação enviado' });
     } catch (error: any) {
-      return reply.code(400).send({ type: error.type, message: error.message });
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
@@ -100,7 +100,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       body: UpdatePasswordBodySchema,
       response: {
         200: MessageSchema,
-        400: ErrorSchema
+        500: ErrorSchema
       }
     }
   }, async (request: AuthenticatedRequest, reply) => {
@@ -109,7 +109,28 @@ export default async function authRoutes(fastify: FastifyInstance) {
       await authService.updatePassword(request.authToken!, data);
       return reply.code(200).send({ message: 'Senha atualizada com sucesso' });
     } catch (error: any) {
-      return reply.code(400).send({ type: error.type, message: error.message });
+      return reply.code(500).send({ type: error.type, message: error.message });
+    }
+  });
+
+  // Refresh token
+  fastify.post('/refresh-token', {
+    schema: {
+      tags: ['auth'],
+      description: 'Renova o access token usando o refresh token',
+      body: RefreshTokenBodySchema,
+      response: {
+        200: UserSessionSchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request, reply) => {
+    try {
+      const data = request.body as any;
+      const result = await authService.refreshToken(data);
+      return reply.code(200).send(result);
+    } catch (error: any) {
+      return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 }

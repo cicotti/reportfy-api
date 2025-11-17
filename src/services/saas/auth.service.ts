@@ -1,6 +1,6 @@
 import { supabase, supabaseSaas, createAuthenticatedSaasClient, createAuthenticatedClient } from '../../lib/supabase';
 import { translateErrorCode, setLanguage } from 'supabase-error-translator-js';
-import { LoginBody, UserSessionResult, ProfileResult, SignupBody, ResetPasswordBody, UpdatePasswordBody } from '../../schemas/saas/auth.schema';
+import { LoginBody, UserSessionResult, ProfileResult, SignupBody, ResetPasswordBody, UpdatePasswordBody, RefreshTokenBody } from '../../schemas/saas/auth.schema';
 import { ApiError } from '../../lib/errors';
 
 export const hasAccountCreated = async (search: string) => {
@@ -137,6 +137,35 @@ export const updatePassword = async (authToken: string, data: UpdatePasswordBody
     const { error } = await saasClient.auth.updateUser({ password: data.newPassword });
     
     if (error) throw new ApiError("authentication", translateErrorCode(error.code, "auth", "pt"));
+  } catch (error: any) {
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
+  }
+};
+
+export const refreshToken = async (data: RefreshTokenBody): Promise<UserSessionResult> => {
+  try {
+    if (!data.refresh_token) {
+      throw new ApiError("validation", "Refresh token é obrigatório");
+    }
+
+    const { data: refreshData, error } = await supabase.auth.refreshSession({
+      refresh_token: data.refresh_token
+    });
+
+    if (error) throw new ApiError("authentication", translateErrorCode(error.code, "auth", "pt"));
+
+    const session = refreshData.session;
+    if (!session || !session.user) {
+      throw new ApiError("validation", "Falha ao renovar sessão. Token inválido ou expirado.");
+    }
+
+    return {
+      user_id: session.user.id,
+      access_token: session.access_token,
+      expires_in: session.expires_in,
+      expires_at: session.expires_at || 0,
+      refresh_token: session.refresh_token
+    };
   } catch (error: any) {
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
