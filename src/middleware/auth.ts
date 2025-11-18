@@ -42,11 +42,11 @@ export async function authenticate(request: AuthenticatedRequest, reply: Fastify
     
   } catch (error) {
     if (error instanceof ApiError) {
-      throw error;
-    } else if (error instanceof UnauthorizedError) {
-      throw new ApiError("authentication", error.message);
-    } else {
-      throw new ApiError("authentication", "Erro ao autenticar usuário");
+      reply.code(403).send({ type: error.type, message: error.message });
     }
+    if (error instanceof UnauthorizedError) {
+      reply.code(401).send({ type: "authentication", message: error.message });
+    }
+    reply.code(500).send({ type: "critical", message: "Erro inesperado ao autenticar usuário" });
   }
 }
