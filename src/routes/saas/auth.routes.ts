@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 import * as authService from '../../services/saas/auth.service';
-import { LoginBodySchema, UserSessionSchema, ProfileSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema, RefreshTokenBodySchema, TokenValiditySchema } from '../../schemas/saas/auth.schema';
+import { LoginBodySchema, UserSessionSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema, RefreshTokenBodySchema, TokenValiditySchema } from '../../schemas/saas/auth.schema';
 import { IdMessageSchema, ErrorSchema, MessageSchema } from '../../schemas/common.schema';
 
 export default async function authRoutes(fastify: FastifyInstance) {
@@ -43,27 +43,6 @@ export default async function authRoutes(fastify: FastifyInstance) {
       const data = request.body as any;
       const result = await authService.signup(data);
       return reply.code(201).send({ id: result.id, message: 'Conta criada com sucesso' });
-    } catch (error: any) {
-      return reply.code(500).send({ type: error.type, message: error.message });
-    }
-  });
-
-  // Get current user
-  fastify.get('/me', {
-    preHandler: authenticate,
-    schema: {
-      tags: ['auth'],
-      description: 'Retorna os dados do usuário autenticado',
-      security: [{ bearerAuth: [] }],
-      response: {
-        200: ProfileSchema,
-        500: ErrorSchema
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
-    try {
-      const user = await authService.getCurrentUser(request.authToken!);
-      return reply.code(200).send(user);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }

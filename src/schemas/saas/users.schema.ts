@@ -17,6 +17,21 @@ export const UserItemSchema = Type.Object({
 
 export type UserListResult = Static<typeof UserItemSchema>;
 
+export const UserContextSchema = Type.Object({
+  id: Type.String({ format: 'uuid' }),
+  company_id: Type.Optional(Type.Union([Type.String({ format: 'uuid' }), Type.Null()])),
+  email: Type.String({ format: 'email' }),
+  name: Type.String(),
+  role: RoleSchema,
+  avatar_url: Type.Optional(Type.String({ format: 'uri' })),
+  preferences: Type.Object({
+    language: Type.String(),
+    theme: Type.String()
+  })
+});
+
+export type UserContextResult = Static<typeof UserContextSchema>;
+
 export const UserInsertSchema = Type.Object({
   company_id: Type.String({ format: 'uuid' }),
   email: Type.String({ format: 'email', minLength: 1 }),

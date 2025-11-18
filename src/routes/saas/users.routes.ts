@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 import * as usersService from '../../services/saas/users.service';
-import { UserItemSchema, UserInsertSchema, UserUpdateSchema, UserRoleUpdateSchema, UserDeleteSchema, UserQuerySchema, UserQuery, UserSettingsSchema, UserSettingsUpdateSchema, AvatarUploadResultSchema } from '../../schemas/saas/users.schema';
+import { UserItemSchema, UserContextSchema, UserInsertSchema, UserUpdateSchema, UserRoleUpdateSchema, UserDeleteSchema, UserQuerySchema, 
+  UserQuery, UserSettingsSchema, UserSettingsUpdateSchema, AvatarUploadResultSchema } from '../../schemas/saas/users.schema';
 import { IdMessageSchema, ErrorSchema } from '../../schemas/common.schema';
 import { Type } from '@sinclair/typebox';
 
@@ -23,6 +24,27 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       const query = request.query as UserQuery;
       const result = await usersService.fetchUsers(request.authToken!, query);
       return reply.code(200).send(result);
+    } catch (error: any) {
+      return reply.code(500).send({ type: error.type, message: error.message });
+    }
+  });
+  
+  // Get current user
+  fastify.get('/me', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['auth'],
+      description: 'Retorna os dados do usuário autenticado',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: UserContextSchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
+    try {
+      const user = await usersService.getCurrentUserContext(request.authToken!);
+      return reply.code(200).send(user);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
