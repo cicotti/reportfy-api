@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
+import fs from 'fs';
+import path from 'path';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import swagger from '@fastify/swagger';
@@ -111,6 +113,37 @@ async function start() {
     });
 
     fastify.get('/', { schema: { hide: true } }, async () => { return { status: 'Reportfy API is accessible.' } });
+
+    fastify.get('/favicon.ico', async (request, reply) => {
+      /*const publicPath = path.join(process.cwd(), 'public', 'favicon.ico');
+      const rootPath = path.join(process.cwd(), 'favicon.ico');
+      let filePath = '';
+
+      if (fs.existsSync(publicPath)) filePath = publicPath;
+      else if (fs.existsSync(rootPath)) filePath = rootPath;
+
+      if (!filePath) {
+        // No favicon provided — return no content so browsers stop requesting
+        return reply.code(204).send();
+      }
+
+      const stat = fs.statSync(filePath);
+      reply.header('Content-Type', 'image/x-icon');
+      reply.header('Content-Length', String(stat.size));
+      const stream = fs.createReadStream(filePath);
+      return reply.code(200).send(stream);
+      */
+      
+      const filePath = path.join(process.cwd(), 'public', 'favicon.ico');
+      if (!filePath) {
+        return reply.code(204).send();
+      }
+      const stat = fs.statSync(filePath);
+      reply.header('Content-Type', 'image/x-icon');
+      reply.header('Content-Length', String(stat.size));
+      const stream = fs.createReadStream(filePath);
+      return reply.code(200).send(stream);
+    });
 
     // Register tools routes
     await fastify.register(toolsRoutes, { prefix: '/api/tools' });
