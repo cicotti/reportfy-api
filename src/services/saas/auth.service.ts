@@ -1,4 +1,4 @@
-import { supabase, supabaseSaas, createAuthenticatedSaasClient, createAuthenticatedClient } from '../../lib/supabase';
+import { supabase, supabaseSaas, createAuthenticatedClient } from '../../lib/supabase';
 import { translateErrorCode, setLanguage } from 'supabase-error-translator-js';
 import { LoginBody, UserSessionResult, SignupBody, ResetPasswordBody, UpdatePasswordBody, RefreshTokenBody, TokenValidityResult } from '../../schemas/saas/auth.schema';
 import { ApiError } from '../../lib/errors';

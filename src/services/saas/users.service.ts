@@ -1,6 +1,7 @@
 import { supabase, createAuthenticatedSaasClient } from '../../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { UserListResult, UserContextResult, UserInsertBody, UserUpdateBody, UserRoleUpdateBody, UserQuery, UserDeleteBody, UserSettingsResult, UserSettingsUpdateBody, AvatarUploadResult } from '../../schemas/saas/users.schema';
+import { UserListResult, UserContextResult, UserInsertBody, UserUpdateBody, UserRoleUpdateBody, UserQuery, UserDeleteBody, 
+  UserSettingsResult, UserSettingsUpdateBody, AvatarUploadResult } from '../../schemas/saas/users.schema';
 import { ApiError } from '../../lib/errors';
 
 export const fetchUsers = async (authToken: string, queryString?: UserQuery): Promise<UserListResult[]> => {

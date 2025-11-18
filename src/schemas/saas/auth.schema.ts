@@ -1,5 +1,4 @@
 import { Type, Static } from '@sinclair/typebox';
-import { RoleSchema } from '../../schemas/common.schema';
 
 export const LoginBodySchema = Type.Object({
   email: Type.String({ format: 'email', maxLength: 100 }),
