@@ -1,15 +1,23 @@
 import { createAuthenticatedSaasClient } from '../../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { CompanyListResult, CompanyInsertBody, CompanyUpdateBody, CompanyDeleteBody } from '../../schemas/saas/companies.schema';
+import { CompanyListResult, CompanyInsertBody, CompanyUpdateBody, CompanyDeleteBody, CompanyQuery } from '../../schemas/saas/companies.schema';
 import { ApiError } from '../../lib/errors';
 
-export const fetchCompanies = async (authToken: string): Promise<CompanyListResult[]> => {
+export const fetchCompanies = async (authToken: string, queryString?: CompanyQuery): Promise<CompanyListResult[]> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
-    const { data, error } = await saasClient
-      .from("companies")
+    
+    let query = saasClient
+      .from("companies")      
       .select("*, profiles!profiles_company_id_fkey(count)")
+      .eq("is_soft_deleted", false)
       .order("name", { ascending: true });
+    
+    if (queryString?.company_id) {
+      query = query.eq("id", queryString.company_id);
+    }
+    
+    const { data, error } = await query;
     
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 

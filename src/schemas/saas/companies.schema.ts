@@ -44,3 +44,12 @@ export const CompanyDeleteSchema = Type.Object({
 });
 
 export type CompanyDeleteBody = Static<typeof CompanyDeleteSchema>;
+
+export const CompanyQuerySchema = Type.Object({
+  company_id: Type.Optional(Type.String({ 
+    format: 'uuid',
+    description: 'ID da empresa para filtrar uma empresa específica'
+  }))
+});
+
+export type CompanyQuery = Static<typeof CompanyQuerySchema>;

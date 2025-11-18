@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 import * as companiesService from '../../services/saas/companies.service';
-import { CompanyItemSchema, CompanyInsertSchema, CompanyUpdateSchema, CompanyDeleteSchema } from '../../schemas/saas/companies.schema';
+import { CompanyItemSchema, CompanyInsertSchema, CompanyUpdateSchema, CompanyDeleteSchema, CompanyQuerySchema, CompanyQuery } from '../../schemas/saas/companies.schema';
 import { IdMessageSchema, ErrorSchema } from '../../schemas/common.schema';
 import { Type } from '@sinclair/typebox';
 
@@ -12,6 +12,7 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
       tags: ['companies'],
       description: 'Lista todas as empresas',
       security: [{ bearerAuth: [] }],
+      querystring: CompanyQuerySchema,
       response: {
         200: Type.Array(CompanyItemSchema),
         500: ErrorSchema
@@ -19,7 +20,8 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const result = await companiesService.fetchCompanies(request.authToken!);
+      const query = request.query as CompanyQuery;
+      const result = await companiesService.fetchCompanies(request.authToken!, query);
       return reply.code(200).send(result);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
