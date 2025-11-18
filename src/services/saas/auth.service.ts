@@ -22,7 +22,7 @@ export const login = async (data: LoginBody): Promise<UserSessionResult> => {
       password: data.password
     });
 
-    if (error) throw new ApiError("authentication", translateErrorCode(error.code, "auth", "pt"));
+    if (error) throw new ApiError("authentication", error.code === undefined ? error.message : translateErrorCode(error.code, "auth", "pt"));
 
     const session = signInData.session;
     if (!session || !session.user) {
@@ -104,13 +104,25 @@ export const getCurrentUser = async (authToken: string): Promise<ProfileResult> 
     
     if (roleError) throw new ApiError("query", translateErrorCode(roleError.code, "database", "pt"));
 
+    const {data: settingsData, error: settingsError } = await saasClient
+      .from('user_settings')
+      .select('language, theme')
+      .eq('user_id', user.id)
+      .single();
+
+    if (settingsError) throw new ApiError("query", translateErrorCode(settingsError.code, "database", "pt"));
+
     return {
       id: user.id,
       company_id: profileData.company_id,
       email: profileData.email,
       name: profileData.name,
       role: roleData?.role || 'user',
-      avatar_url: profileData?.avatar_url
+      avatar_url: profileData?.avatar_url,
+      preferences: {
+        language: settingsData.language || 'en',
+        theme: settingsData.theme || 'light'
+      }
     };
   } catch (error: any) {
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
@@ -124,7 +136,7 @@ export const resetPassword = async (data: ResetPasswordBody): Promise<void> => {
     }
     const { error } = await supabase.auth.resetPasswordForEmail(data.email, { redirectTo: data.redirectTo });
     
-    if (error) throw new ApiError("authentication", translateErrorCode(error.code, "auth", "pt"));
+    if (error) throw new ApiError("authentication", error.code === undefined ? error.message : translateErrorCode(error.code, "auth", "pt"));
   } catch (error: any) {
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
@@ -135,10 +147,10 @@ export const updatePassword = async (authToken: string, data: UpdatePasswordBody
     if (!data.newPassword) {
       throw new ApiError("validation", "Nova senha é obrigatória");
     }
-    const saasClient = createAuthenticatedSaasClient(authToken);
-    const { error } = await saasClient.auth.updateUser({ password: data.newPassword });
+    const client = createAuthenticatedClient(authToken);
+    const { error } = await client.auth.updateUser({ password: data.newPassword });
     
-    if (error) throw new ApiError("authentication", translateErrorCode(error.code, "auth", "pt"));
+    if (error) throw new ApiError("authentication", error.code === undefined ? error.message : translateErrorCode(error.code, "auth", "pt"));
   } catch (error: any) {
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
@@ -154,7 +166,7 @@ export const refreshToken = async (data: RefreshTokenBody): Promise<UserSessionR
       refresh_token: data.refresh_token
     });
 
-    if (error) throw new ApiError("authentication", translateErrorCode(error.code, "auth", "pt"));
+    if (error) throw new ApiError("authentication", error.code === undefined ? error.message : translateErrorCode(error.code, "auth", "pt"));
 
     const session = refreshData.session;
     if (!session || !session.user) {
@@ -199,7 +211,7 @@ export const logout = async (authToken: string): Promise<void> => {
     const client = createAuthenticatedClient(authToken);
     const { error } = await client.auth.signOut();
     
-    if (error) throw new ApiError("authentication", translateErrorCode(error.code, "auth", "pt"));
+    if (error) throw new ApiError("authentication", error.code === undefined ? error.message : translateErrorCode(error.code, "auth", "pt"));
   } catch (error: any) {
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }

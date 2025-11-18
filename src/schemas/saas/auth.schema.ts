@@ -24,7 +24,11 @@ export const ProfileSchema = Type.Object({
   email: Type.String({ format: 'email' }),
   name: Type.String(),
   role: RoleSchema,
-  avatar_url: Type.Optional(Type.String({ format: 'uri' }))
+  avatar_url: Type.Optional(Type.String({ format: 'uri' })),
+  preferences: Type.Object({
+    language: Type.String(),
+    theme: Type.String()
+  })
 });
 
 export type ProfileResult = Static<typeof ProfileSchema>;
