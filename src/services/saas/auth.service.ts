@@ -58,18 +58,20 @@ export const signup = async (data: SignupBody): Promise<{ id: string }> => {
       throw new ApiError("validation", "Empresa já cadastrada");
     }
 
-    // Create user account, company, profile, profile user_role and user_settings
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ 
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: data.email.toLowerCase().trim(),
       password: data.password,
-      options: { data: { 
-        name: data.name,
-        company_name: data.company.name,
-        company_document: data.company.document,
-        company_telephone: data.company.telephone
-      }}
+      options: {
+        emailRedirectTo: data.redirectTo,
+        data: {
+          name: data.name,
+          company_name: data.company.name,
+          company_document: data.company.document,
+          company_telephone: data.company.telephone
+        }
+      }
     });
-
+    
     if (signUpError) throw new ApiError("authentication", translateErrorCode(signUpError.code, "auth", "pt"));
     
     return { id: signUpData.user?.id || "" };

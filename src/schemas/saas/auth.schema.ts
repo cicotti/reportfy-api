@@ -37,7 +37,8 @@ export const SignupBodySchema = Type.Object({
     name: Type.String({ minLength: 1, maxLength: 100 }),
     document: Type.String({ minLength: 1, maxLength: 18 }),
     telephone: Type.String({ minLength: 1, maxLength: 15})
-  })
+  }),
+  redirectTo: Type.String({ format: 'uri' })
 });
 
 export type SignupBody = Static<typeof SignupBodySchema>;
