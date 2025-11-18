@@ -34,55 +34,6 @@ export const fetchUsers = async (authToken: string, queryString?: UserQuery): Pr
   }
 };
 
-export const getCurrentUserContext = async (authToken: string): Promise<UserContextResult> => {
-  try {
-    const { data: { user }, error: error } = await supabase.auth.getUser(authToken);
-    
-    if (error || !user) throw new ApiError("authentication", translateErrorCode(error?.code, "auth", "pt"));
-
-    const saasClient = createAuthenticatedSaasClient(authToken);
-
-    const { data: profileData, error: profileError } = await saasClient
-      .from('profiles')
-      .select('name, email, avatar_url, company_id')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError) throw new ApiError("query", translateErrorCode(profileError.code, "database", "pt"));
-
-    const { data: roleData, error: roleError } = await saasClient
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (roleError) throw new ApiError("query", translateErrorCode(roleError.code, "database", "pt"));
-
-    const {data: settingsData, error: settingsError } = await saasClient
-      .from('user_settings')
-      .select('language, theme')
-      .eq('user_id', user.id)
-      .single();
-
-    if (settingsError) throw new ApiError("query", translateErrorCode(settingsError.code, "database", "pt"));
-
-    return {
-      id: user.id,
-      company_id: profileData.company_id,
-      email: profileData.email,
-      name: profileData.name,
-      role: roleData?.role || 'user',
-      avatar_url: profileData?.avatar_url,
-      preferences: {
-        language: settingsData.language || 'en',
-        theme: settingsData.theme || 'light'
-      }
-    };
-  } catch (error: any) {
-    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
-  }
-};
-
 export const createUser = async (authToken: string, data: UserInsertBody): Promise<{ id: string }> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
@@ -199,6 +150,55 @@ export const deleteUser = async (authToken: string, data: UserDeleteBody): Promi
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
   } catch (error: any) {
     console.error("users.deleteUser error:", error);
+    throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
+  }
+};
+
+export const getCurrentUserContext = async (authToken: string): Promise<UserContextResult> => {
+  try {
+    const { data: { user }, error: error } = await supabase.auth.getUser(authToken);
+    
+    if (error || !user) throw new ApiError("authentication", translateErrorCode(error?.code, "auth", "pt"));
+
+    const saasClient = createAuthenticatedSaasClient(authToken);
+
+    const { data: profileData, error: profileError } = await saasClient
+      .from('profiles')
+      .select('name, email, avatar_url, company_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) throw new ApiError("query", translateErrorCode(profileError.code, "database", "pt"));
+
+    const { data: roleData, error: roleError } = await saasClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (roleError) throw new ApiError("query", translateErrorCode(roleError.code, "database", "pt"));
+
+    const {data: settingsData, error: settingsError } = await saasClient
+      .from('user_settings')
+      .select('language, theme')
+      .eq('user_id', user.id)
+      .single();
+
+    if (settingsError) throw new ApiError("query", translateErrorCode(settingsError.code, "database", "pt"));
+
+    return {
+      id: user.id,
+      company_id: profileData.company_id,
+      email: profileData.email,
+      name: profileData.name,
+      role: roleData?.role || 'user',
+      avatar_url: profileData?.avatar_url,
+      preferences: {
+        language: settingsData.language || 'en',
+        theme: settingsData.theme || 'light'
+      }
+    };
+  } catch (error: any) {
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };

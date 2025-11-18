@@ -28,27 +28,6 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
-  
-  // Get current user
-  fastify.get('/me', {
-    preHandler: authenticate,
-    schema: {
-      tags: ['auth'],
-      description: 'Retorna os dados do usuário autenticado',
-      security: [{ bearerAuth: [] }],
-      response: {
-        200: UserContextSchema,
-        500: ErrorSchema
-      }
-    }
-  }, async (request: AuthenticatedRequest, reply) => {
-    try {
-      const user = await usersService.getCurrentUserContext(request.authToken!);
-      return reply.code(200).send(user);
-    } catch (error: any) {
-      return reply.code(500).send({ type: error.type, message: error.message });
-    }
-  });
 
   fastify.post('/', {
     preHandler: authenticate,
@@ -111,6 +90,27 @@ export default async function usersRoutes(fastify: FastifyInstance) {
       const data = request.body as any;
       await usersService.deleteUser(request.authToken!, data.id);
       return reply.code(200).send({ id: data.id, message: 'Usuário excluído com sucesso' });
+    } catch (error: any) {
+      return reply.code(500).send({ type: error.type, message: error.message });
+    }
+  });
+
+  // Get current user
+  fastify.get('/me', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['users'],
+      description: 'Retorna os dados do usuário autenticado',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: UserContextSchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
+    try {
+      const user = await usersService.getCurrentUserContext(request.authToken!);
+      return reply.code(200).send(user);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }

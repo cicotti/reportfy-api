@@ -20,8 +20,8 @@ export type UserListResult = Static<typeof UserItemSchema>;
 export const UserContextSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),
   company_id: Type.Optional(Type.Union([Type.String({ format: 'uuid' }), Type.Null()])),
-  email: Type.String({ format: 'email' }),
   name: Type.String(),
+  email: Type.String({ format: 'email' }),
   role: RoleSchema,
   avatar_url: Type.Optional(Type.String({ format: 'uri' })),
   preferences: Type.Object({
