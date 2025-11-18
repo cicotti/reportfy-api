@@ -218,16 +218,14 @@ export const updateUserSettings = async (authToken: string, data: UserSettingsUp
   }
 };
 
-export const uploadAvatar = async (
-  authToken: string,
-  file: Buffer,
-  fileName: string
-): Promise<AvatarUploadResult> => {
+export const uploadAvatar = async (authToken: string, data: any): Promise<AvatarUploadResult> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
     const { data: { user }, error: userError } = await saasClient.auth.getUser();
-    
     if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
+
+    const buffer = await data.toBuffer();
+    const fileName = data.filename;
 
     // Delete old avatar if exists
     const { data: profileData } = await saasClient
@@ -254,7 +252,7 @@ export const uploadAvatar = async (
 
     const { data: uploadData, error: uploadError } = await saasClient.storage
       .from("avatars")
-      .upload(storagePath, file, {
+      .upload(storagePath, buffer, {
         cacheControl: "3600",
         upsert: false,
       });

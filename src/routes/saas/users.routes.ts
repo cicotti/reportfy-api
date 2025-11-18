@@ -131,21 +131,10 @@ export default async function usersRoutes(fastify: FastifyInstance) {
   }, async (request: any, reply) => {
     try {
       const data = await request.file();
-      
-      if (!data) {
-        return reply.code(500).send({ type: 'validation', message: 'Arquivo não fornecido' });
-      }
-
-      const buffer = await data.toBuffer();
-      const result = await usersService.uploadAvatar(
-        (request as AuthenticatedRequest).authToken!,
-        buffer,
-        data.filename
-      );
-
+      const result = await usersService.uploadAvatar(request.authToken!, data);
       return reply.code(200).send(result);
     } catch (error: any) {
-      return reply.code(500).send({ type: error.type, message: error.message });
+      return reply.code(500).send({ type: error.type ?? "critical", message: error.message });
     }
   });
 
