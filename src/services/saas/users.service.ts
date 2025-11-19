@@ -1,7 +1,8 @@
-import { supabase, createAuthenticatedSaasClient } from '../../lib/supabase';
+import { supabase, createAuthenticatedSaasClient, adminSupabase } from '../../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
 import { UserListResult, UserContextResult, UserInsertBody, UserUpdateBody, UserRoleUpdateBody, UserQuery, UserDeleteBody, 
   UserSettingsResult, UserSettingsUpdateBody, AvatarUploadResult } from '../../schemas/saas/users.schema';
+import { hasAccountCreated } from './auth.service';
 import { ApiError } from '../../lib/errors';
 
 export const fetchUsers = async (authToken: string, queryString?: UserQuery): Promise<UserListResult[]> => {
@@ -36,86 +37,32 @@ export const fetchUsers = async (authToken: string, queryString?: UserQuery): Pr
 
 export const createUser = async (authToken: string, data: UserInsertBody): Promise<{ id: string }> => {
   try {
-    const saasClient = createAuthenticatedSaasClient(authToken);
-    
-    // Generate a temporary password (user should reset via email)
-    const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
-    
-    // Create user in auth.users
-    const { data: signUpData, error: signUpError } = await saasClient.auth.admin.createUser({
+    const has_email = await hasAccountCreated(data.email.toLowerCase().trim());
+
+    if (has_email.error) {
+      throw new ApiError("query", "Erro ao verificar conta existente");      
+    } else if (has_email.valid) {
+      throw new ApiError("validation", "Email já cadastrado");
+    }
+
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: data.email.toLowerCase().trim(),
-      password: tempPassword,
-      email_confirm: true,
-      user_metadata: {
-        name: data.name,
-        company_id: data.company_id
+      password: data.password,
+      options: {
+        data: {
+          name: data.name.trim(),
+          company_document: data.company.document.trim(),
+        }
       }
     });
-
+    
     if (signUpError) throw new ApiError("authentication", translateErrorCode(signUpError.code, "auth", "pt"));
-    if (!signUpData.user) throw new ApiError("critical", "Erro ao criar usuário");
 
-    const userId = signUpData.user.id;
-
-    // Create profile
-    const { error: profileError } = await saasClient
-      .from("profiles")
-      .insert([{
-        id: userId,
-        company_id: data.company_id,
-        email: data.email.toLowerCase().trim(),
-        name: data.name,
-        avatar_url: data.avatar_url
-      }]);
-
-    if (profileError) {
-      // Rollback: delete auth user if profile creation fails
-      await saasClient.auth.admin.deleteUser(userId);
-      throw new ApiError("query", translateErrorCode(profileError.code, "database", "pt"));
+    if (data.role !== "user") {
+       updateUserRole(authToken, { user_id: signUpData.user!.id, role: data.role });
     }
-
-    // Create default user role
-    const { error: roleError } = await saasClient
-      .from("user_roles")
-      .insert([{
-        user_id: userId,
-        role: 'user'
-      }]);
-
-    if (roleError) {
-      // Rollback: delete auth user and profile if role creation fails
-      await saasClient.auth.admin.deleteUser(userId);
-      throw new ApiError("query", translateErrorCode(roleError.code, "database", "pt"));
-    }
-
-    // Create default user settings
-    const { error: settingsError } = await saasClient
-      .from("user_settings")
-      .insert([{
-        user_id: userId,
-        email_notifications: true,
-        marketing_emails: false,
-        theme: 'system',
-        language: 'pt'
-      }]);
-
-    if (settingsError) {
-      // Rollback: delete auth user, profile and role if settings creation fails
-      await saasClient.auth.admin.deleteUser(userId);
-      throw new ApiError("query", translateErrorCode(settingsError.code, "database", "pt"));
-    }
-
-    // Send password reset email
-    const { error: resetError } = await saasClient.auth.resetPasswordForEmail(
-      data.email.toLowerCase().trim(),
-      { redirectTo: `${process.env.APP_URL}/reset-password` }
-    );
-
-    if (resetError) {
-      console.warn("Warning: User created but password reset email failed:", resetError);
-    }
-
-    return { id: userId };
+    
+    return { id: signUpData.user!.id };
   } catch (error: any) {
     console.error("users.createUser error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
@@ -140,12 +87,7 @@ export const updateProfile = async (authToken: string, data: UserUpdateBody): Pr
 
 export const deleteUser = async (authToken: string, data: UserDeleteBody): Promise<void> => {
   try {
-    const saasClient = createAuthenticatedSaasClient(authToken);
-    
-    const { error } = await saasClient
-      .from("profiles")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await adminSupabase.auth.admin.deleteUser(data.id);
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
   } catch (error: any) {

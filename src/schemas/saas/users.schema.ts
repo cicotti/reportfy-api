@@ -33,10 +33,13 @@ export const UserContextSchema = Type.Object({
 export type UserContextResult = Static<typeof UserContextSchema>;
 
 export const UserInsertSchema = Type.Object({
-  company_id: Type.String({ format: 'uuid' }),
+  name: Type.String({ minLength: 1, maxLength: 50 }),
   email: Type.String({ format: 'email', minLength: 1 }),
-  name: Type.String({ minLength: 1 }),
-  avatar_url: Type.Optional(Type.Union([Type.String({ format: 'uri' }), Type.Null()]))
+  password: Type.String({ minLength: 6 }),
+  company: Type.Object({
+    document: Type.String({ minLength: 1, maxLength: 18 })
+  }),
+  role: RoleSchema
 });
 
 export type UserInsertBody = Static<typeof UserInsertSchema>;
@@ -44,7 +47,6 @@ export type UserInsertBody = Static<typeof UserInsertSchema>;
 export const UserUpdateSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),
   name: Type.Optional(Type.String({ minLength: 1 })),
-  avatar_url: Type.Optional(Type.Union([Type.String({ format: 'uri' }), Type.Null()]))
 });
 
 export type UserUpdateBody = Static<typeof UserUpdateSchema>;

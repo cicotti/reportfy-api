@@ -124,6 +124,7 @@ vercel --prod
 ALLOWED_ORIGINS=https://seu-frontend.vercel.app
 SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_ANON_KEY=xxx
+SUPABASE_SERVICE_ROLE_KEY=xxx
 ```
 
 ## 🔧 Desenvolvimento Local

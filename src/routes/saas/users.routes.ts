@@ -88,7 +88,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const data = request.body as any;
-      await usersService.deleteUser(request.authToken!, data.id);
+      await usersService.deleteUser(request.authToken!, data);
       return reply.code(200).send({ id: data.id, message: 'Usuário excluído com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });

@@ -42,6 +42,7 @@ NODE_ENV=development
 ALLOWED_ORIGINS=http://localhost:5173,http://localhost:8080
 SUPABASE_URL=sua_url_do_supabase
 SUPABASE_ANON_KEY=sua_chave_anonima_do_supabase
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 ```
 
