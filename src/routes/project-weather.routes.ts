@@ -2,17 +2,17 @@ import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as weatherService from '../services/project-weather.service';
 import { Type } from '@sinclair/typebox';
-import { WeatherItemSchema, WeatherSyncSchema, WeatherProjectIdParamSchema } from '../schemas/project-weather.schema';
+import { WeatherItemSchema, WeatherSyncSchema, WeatherQuerySchema, WeatherQuery, WeatherSyncBody } from '../schemas/project-weather.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
 
 export default async function weatherRoutes(fastify: FastifyInstance) {
-  fastify.get('/:projectId', {
+  fastify.get('/', {
     preHandler: authenticate,
     schema: {
       tags: ['project-weathers'],
       description: 'Busca informações meteorológicas de um projeto',
       security: [{ bearerAuth: [] }],
-      params: WeatherProjectIdParamSchema,
+      querystring: WeatherQuerySchema,
       response: {
         200: Type.Array(WeatherItemSchema),
         500: ErrorSchema
@@ -20,21 +20,20 @@ export default async function weatherRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { projectId } = request.params as { projectId: string };
-      const weather = await weatherService.getProjectWeather(request.authToken!, projectId);
+      const query = request.query as WeatherQuery;
+      const weather = await weatherService.getProjectWeather(request.authToken!, query);
       return reply.code(200).send(weather);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
   });
 
-  fastify.post('/:projectId/sync', {
+  fastify.post('/sync', {
     preHandler: authenticate,
     schema: {
       tags: ['project-weathers'],
       description: 'Sincroniza dados meteorológicos de um projeto a partir de coordenadas GPS',
       security: [{ bearerAuth: [] }],
-      params: WeatherProjectIdParamSchema,
       body: WeatherSyncSchema,
       response: {
         200: IdMessageSchema,
@@ -43,11 +42,10 @@ export default async function weatherRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { projectId } = request.params as { projectId: string };
-      const { latitude, longitude } = request.body as { latitude: number; longitude: number };
+      const syncData = request.body as WeatherSyncBody;
       
-      await weatherService.syncProjectWeatherFromAPI(request.authToken!, projectId, latitude, longitude);
-      return reply.code(200).send({ id: projectId, message: 'Clima sincronizado com sucesso' });
+      await weatherService.syncProjectWeatherFromAPI(request.authToken!, syncData);
+      return reply.code(200).send({ id: syncData.project_id, message: 'Clima sincronizado com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }

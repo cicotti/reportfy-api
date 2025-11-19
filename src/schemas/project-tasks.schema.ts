@@ -57,7 +57,8 @@ export const ProjectTaskDeleteSchema = Type.Object({
 export type ProjectTaskDeleteBody = Static<typeof ProjectTaskDeleteSchema>;
 
 export const ProjectTaskQuerySchema = Type.Object({
-  project_id: Type.Optional(Type.String({ format: 'uuid' }))
+  task_id: Type.Optional(Type.String({ format: "uuid" })),
+  project_id: Type.Optional(Type.String({ format: "uuid" }))
 });
 
 export type ProjectTaskQuery = Static<typeof ProjectTaskQuerySchema>;

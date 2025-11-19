@@ -3,19 +3,29 @@ import { translateErrorCode } from 'supabase-error-translator-js';
 import {
   ProjectInformativeListResult,
   ProjectInformativeInsertBody,
-  ProjectInformativeUpdateBody
+  ProjectInformativeUpdateBody,
+  ProjectInformativeQuery
 } from '../schemas/project-informatives.schema';
 import { ApiError } from '../lib/errors';
 
-export const fetchProjectInformatives = async (authToken: string, projectId: string): Promise<ProjectInformativeListResult[]> => {
+export const fetchProjectInformatives = async (authToken: string, queryString?: ProjectInformativeQuery): Promise<ProjectInformativeListResult[]> => {
   try {
     const client = createAuthenticatedClient(authToken);
     
-    const { data, error } = await client
+    let query = client
       .from("project_informatives")
       .select("*, informative_types!project_informatives_informative_type_id_fkey(name)")
-      .eq("project_id", projectId)
       .order("created_at", { ascending: true });
+    
+    if (queryString?.project_id) {
+      query = query.eq("project_id", queryString.project_id);
+    }
+
+    if (queryString?.informative_id) {
+      query = query.eq("id", queryString.informative_id);
+    }
+
+    const { data, error } = await query;
     
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 

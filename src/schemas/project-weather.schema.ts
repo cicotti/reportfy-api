@@ -14,15 +14,16 @@ export const WeatherItemSchema = Type.Object({
 
 export type WeatherListResult = Static<typeof WeatherItemSchema>;
 
+export const WeatherQuerySchema = Type.Object({
+  project_id: Type.Optional(Type.String({ format: 'uuid' }))
+});
+
+export type WeatherQuery = Static<typeof WeatherQuerySchema>;
+
 export const WeatherSyncSchema = Type.Object({
+  project_id: Type.String({ format: 'uuid' }),
   latitude: Type.Number({ minimum: -90, maximum: 90 }),
   longitude: Type.Number({ minimum: -180, maximum: 180 })
 });
 
 export type WeatherSyncBody = Static<typeof WeatherSyncSchema>;
-
-export const WeatherProjectIdParamSchema = Type.Object({
-  projectId: Type.String({ format: 'uuid' })
-});
-
-export type WeatherProjectIdParam = Static<typeof WeatherProjectIdParamSchema>;

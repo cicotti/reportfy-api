@@ -1,22 +1,27 @@
 import { createAuthenticatedClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
 import { getCurrentWeekStart, getNextWeekEnd, getNextWeekStart } from '../lib/utils';
-import { WeatherListResult, WeatherSyncBody } from '../schemas/project-weather.schema';
+import { WeatherListResult, WeatherSyncBody, WeatherQuery } from '../schemas/project-weather.schema';
 import { ApiError } from '../lib/errors';
 
-export const getProjectWeather = async (authToken: string, projectId: string): Promise<WeatherListResult[]> => {
+export const getProjectWeather = async (authToken: string, queryString?: WeatherQuery): Promise<WeatherListResult[]> => {
   try {
     const client = createAuthenticatedClient(authToken);
     const currentWeekStart = getCurrentWeekStart();
     const nextWeekEnd = getNextWeekEnd();
 
-    const { data, error } = await client
+    let query = client
       .from("project_weathers")
       .select("*")
-      .eq("project_id", projectId)
       .gte("weather_date", currentWeekStart)
       .lte("weather_date", nextWeekEnd)
       .order("weather_date", { ascending: true });
+
+    if (queryString?.project_id) {
+      query = query.eq("project_id", queryString.project_id);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
@@ -77,11 +82,10 @@ export async function fetchWeatherFromAPI(
 
 export const syncProjectWeatherFromAPI = async (
   authToken: string,
-  projectId: string,
-  latitude: number,
-  longitude: number
+  syncData: WeatherSyncBody
 ): Promise<void> => {
   try {
+    const { project_id: projectId, latitude, longitude } = syncData;
     const client = createAuthenticatedClient(authToken);
     const today = new Date().toISOString().split('T')[0];
     const currentWeekStart = getCurrentWeekStart();

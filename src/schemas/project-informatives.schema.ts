@@ -14,6 +14,13 @@ export const ProjectInformativeItemSchema = Type.Object({
 
 export type ProjectInformativeListResult = Static<typeof ProjectInformativeItemSchema>;
 
+export const ProjectInformativeQuerySchema = Type.Object({
+  informative_id: Type.Optional(Type.String({ format: 'uuid' })),
+  project_id: Type.Optional(Type.String({ format: 'uuid' })),
+});
+
+export type ProjectInformativeQuery = Static<typeof ProjectInformativeQuerySchema>;
+
 export const ProjectInformativeInsertSchema = Type.Object({
   project_id: Type.String({ format: 'uuid' }),
   informative_type_id: Type.String({ format: 'uuid' }),
@@ -34,9 +41,3 @@ export const ProjectInformativeDeleteSchema = Type.Object({
 });
 
 export type ProjectInformativeDeleteBody = Static<typeof ProjectInformativeDeleteSchema>;
-
-export const ProjectInformativeProjectIdParamSchema = Type.Object({
-  projectId: Type.String({ format: 'uuid' })
-});
-
-export type ProjectInformativeProjectIdParam = Static<typeof ProjectInformativeProjectIdParamSchema>;

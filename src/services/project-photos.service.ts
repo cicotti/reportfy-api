@@ -1,18 +1,27 @@
 import { createAuthenticatedClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { PhotoListResult } from '../schemas/project-photos.schema';
+import { PhotoListResult, PhotoQuery } from '../schemas/project-photos.schema';
 import { ApiError } from '../lib/errors';
 
-export const getProjectPhotos = async (authToken: string, projectId: string): Promise<PhotoListResult[]> => {
+export const getProjectPhotos = async (authToken: string, queryString?: PhotoQuery): Promise<PhotoListResult[]> => {
   try {
     const client = createAuthenticatedClient(authToken);
     
-    const { data, error } = await client
+    let query = client
       .from("project_photos")
       .select("*")
-      .eq("project_id", projectId)
       .order("display_order", { ascending: true })
       .order("created_at", { ascending: false });
+
+    if (queryString?.project_id) {
+      query = query.eq("project_id", queryString.project_id);
+    }
+
+    if (queryString?.photo_id) {
+      query = query.eq("id", queryString.photo_id);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 

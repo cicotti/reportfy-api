@@ -12,14 +12,22 @@ export const PhotoItemSchema = Type.Object({
 
 export type PhotoListResult = Static<typeof PhotoItemSchema>;
 
+export const PhotoQuerySchema = Type.Object({
+  photo_id: Type.Optional(Type.String({ format: 'uuid' })),
+  project_id: Type.Optional(Type.String({ format: 'uuid' }))  
+});
+
+export type PhotoQuery = Static<typeof PhotoQuerySchema>;
+
+export const PhotoInsertBodySchema = Type.Object({
+  project_id: Type.String({ format: 'uuid' }),
+  description: Type.Optional(Type.String())
+});
+
+export type PhotoInsertBody = Static<typeof PhotoInsertBodySchema>;
+
 export const PhotoDeleteSchema = Type.Object({
   id: Type.String({ format: 'uuid' })
 });
 
 export type PhotoDeleteBody = Static<typeof PhotoDeleteSchema>;
-
-export const PhotoProjectIdParamSchema = Type.Object({
-  projectId: Type.String({ format: 'uuid' })
-});
-
-export type PhotoProjectIdParam = Static<typeof PhotoProjectIdParamSchema>;

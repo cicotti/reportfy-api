@@ -7,18 +7,19 @@ import {
   ProjectInformativeInsertSchema,
   ProjectInformativeUpdateSchema,
   ProjectInformativeDeleteSchema,
-  ProjectInformativeProjectIdParamSchema
+  ProjectInformativeQuerySchema,
+  ProjectInformativeQuery
 } from '../schemas/project-informatives.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
 
 export default async function projectInformativesRoutes(fastify: FastifyInstance) {
-  fastify.get('/:projectId', {
+  fastify.get('/', {
     preHandler: authenticate,
     schema: {
       tags: ['project-informatives'],
       description: 'Lista todos os informativos de um projeto',
       security: [{ bearerAuth: [] }],
-      params: ProjectInformativeProjectIdParamSchema,
+      querystring: ProjectInformativeQuerySchema,
       response: {
         200: Type.Array(ProjectInformativeItemSchema),
         500: ErrorSchema
@@ -26,8 +27,8 @@ export default async function projectInformativesRoutes(fastify: FastifyInstance
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const { projectId } = request.params as { projectId: string };
-      const informatives = await projectInformativesService.fetchProjectInformatives(request.authToken!, projectId);
+      const query = request.query as ProjectInformativeQuery;
+      const informatives = await projectInformativesService.fetchProjectInformatives(request.authToken!, query);
       return reply.code(200).send(informatives);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });

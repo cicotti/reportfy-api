@@ -19,6 +19,10 @@ export const fetchProjectTasks = async (authToken: string, queryString?: Project
     if (queryString.project_id) {
       query = query.eq("project_id", queryString.project_id);
     }
+
+    if (queryString.task_id) {
+      query = query.eq("id", queryString.task_id);
+    }
     
     const { data, error } = await query;
     
