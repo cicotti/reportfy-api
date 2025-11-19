@@ -1,19 +1,23 @@
 import { Type, Static } from '@sinclair/typebox';
-import { locationSchema } from './common.schema';
+import { LocationSchema, ProjectStatusSchema } from './common.schema';
 
 export const ProjectItemSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),
   company_id: Type.String({ format: 'uuid' }),
   client: Type.Object({
-      id: Type.String({ format: 'uuid' }),
-      name: Type.String()
-    }),
+    id: Type.String({ format: 'uuid' }),
+    name: Type.String()
+  }),
   name: Type.String(),
+  address: Type.String(),
+  location: LocationSchema,
+  status: ProjectStatusSchema,
+  completion_percentage: Type.Number({ minimum: 0, maximum: 100 }),
   planned_start: Type.Optional(Type.Union([Type.String({ format: 'date' }), Type.Null()])),
   planned_end: Type.Optional(Type.Union([Type.String({ format: 'date' }), Type.Null()])),
   actual_start: Type.Optional(Type.Union([Type.String({ format: 'date' }), Type.Null()])),
-  actual_end: Type.Optional(Type.Union([Type.String({ format: 'date' }), Type.Null()])),
-  status: Type.String(),
+  actual_end: Type.Optional(Type.Union([Type.String({ format: 'date' }), Type.Null()])),  
+  variance: Type.Optional(Type.Number()),
   is_active: Type.Boolean(),
   created_by: Type.String({ format: 'uuid' }),
   created_at: Type.String({ format: 'date-time' }),
@@ -28,7 +32,7 @@ export const ProjectInsertSchema = Type.Object({
   client_id: Type.String({ format: 'uuid' }),
   name: Type.String({ minLength: 1 }),
   address: Type.String({ minLength: 1 }),
-  location: locationSchema,
+  location: LocationSchema,
   is_active: Type.Boolean()
 });
 
@@ -38,7 +42,7 @@ export const ProjectUpdateSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),
   name: Type.Optional(Type.String({ minLength: 1 })),
   address: Type.Optional(Type.String({ minLength: 1 })),
-  location: Type.Optional(locationSchema),
+  location: Type.Optional(LocationSchema),
   is_active: Type.Optional(Type.Boolean())
 });
 

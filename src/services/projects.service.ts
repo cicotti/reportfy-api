@@ -50,13 +50,26 @@ export const fetchProjects = async (authToken: string, queryString?: ProjectQuer
       }
     }
 
-    return projects.map((project) => {
+    return projects.map((project) => {      
+      let location: { lat: string; long: string } | undefined = undefined;
+      if (project.location) {
+        if (typeof project.location === 'string') {
+          const m = project.location.match(/\(?\s*([^,()]+)\s*,\s*([^,()]+)\s*\)?/);
+          if (m) {
+            location = { lat: String(m[1]), long: String(m[2]) };
+          }
+        } else if (typeof project.location === 'object' && project.location.lat && project.location.long) {
+          location = { lat: String((project.location as any).lat), long: String((project.location as any).long) };
+        }
+      }
+
       return {
         ...project,
         client: { 
           id: project.client_id, 
           name: clientsMap[project.client_id].name 
-        }
+        },
+        location: location
       } as ProjectListResult;
     });
   } catch (error: any) {

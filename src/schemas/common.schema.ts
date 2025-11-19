@@ -24,13 +24,14 @@ export const RoleSchema = Type.Union([
 ]);
 
 export const ProjectStatusSchema = Type.Union([
-  Type.Literal('planning'),
+  Type.Literal('inactive'),
+  Type.Literal('not_started'),
   Type.Literal('in_progress'),
-  Type.Literal('completed'),
-  Type.Literal('on_hold')
+  Type.Literal('delayed'),
+  Type.Literal('done')
 ]);
 
- export const locationSchema = Type.Object({
+ export const LocationSchema = Type.Object({
     lat: Type.String(),
     long: Type.String()
   });
