@@ -51,6 +51,7 @@ export const ClientDeleteSchema = Type.Object({
 export type ClientDeleteBody = Static<typeof ClientDeleteSchema>;
 
 export const ClientQuerySchema = Type.Object({
+  client_id: Type.Optional(Type.String({ format: 'uuid' })),
   company_id: Type.Optional(Type.String({ format: 'uuid' }))
 });
 

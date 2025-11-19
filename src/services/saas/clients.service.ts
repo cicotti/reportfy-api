@@ -13,6 +13,10 @@ export const fetchClients = async (authToken: string, queryString?: ClientQuery)
       .eq("is_soft_deleted", false)
       .order("name", { ascending: true });
 
+    if (queryString && queryString.client_id) {
+      query = query.eq("id", queryString.client_id);
+    }
+    
     if (queryString && queryString.company_id) {
       query = query.eq("company_id", queryString.company_id!);
     }
