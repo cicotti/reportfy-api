@@ -114,7 +114,7 @@ async function start() {
 
     fastify.get('/', { schema: { hide: true } }, async () => { return { status: 'Reportfy API is accessible.' } });
 
-    fastify.get('/favicon.ico', async (request, reply) => {
+    fastify.get('/favicon.ico', { schema: { hide: true } }, async (request, reply) => {
       const filePath = path.join(process.cwd(), 'public', 'favicon.ico');
       if (!filePath) {
         return reply.code(204).send();

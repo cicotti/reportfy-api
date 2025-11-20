@@ -6,10 +6,7 @@ export const ProjectInformativeItemSchema = Type.Object({
   informative_type_id: Type.String({ format: 'uuid' }),
   content: Type.Optional(Type.Union([Type.String(), Type.Null()])),
   created_at: Type.String({ format: 'date-time' }),
-  updated_at: Type.String({ format: 'date-time' }),
-  created_by: Type.String({ format: 'uuid' }),
-  updated_by: Type.String({ format: 'uuid' }),
-  informative_type_name: Type.Optional(Type.String())
+  updated_at: Type.String({ format: 'date-time' })
 });
 
 export type ProjectInformativeListResult = Static<typeof ProjectInformativeItemSchema>;

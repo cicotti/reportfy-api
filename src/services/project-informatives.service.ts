@@ -1,11 +1,6 @@
 import { createAuthenticatedClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import {
-  ProjectInformativeListResult,
-  ProjectInformativeInsertBody,
-  ProjectInformativeUpdateBody,
-  ProjectInformativeQuery
-} from '../schemas/project-informatives.schema';
+import { ProjectInformativeListResult, ProjectInformativeInsertBody, ProjectInformativeUpdateBody, ProjectInformativeQuery } from '../schemas/project-informatives.schema';
 import { ApiError } from '../lib/errors';
 
 export const fetchProjectInformatives = async (authToken: string, queryString?: ProjectInformativeQuery): Promise<ProjectInformativeListResult[]> => {
@@ -14,7 +9,7 @@ export const fetchProjectInformatives = async (authToken: string, queryString?: 
     
     let query = client
       .from("project_informatives")
-      .select("*, informative_types!project_informatives_informative_type_id_fkey(name)")
+      .select("*")
       .order("created_at", { ascending: true });
     
     if (queryString?.project_id) {
@@ -29,25 +24,26 @@ export const fetchProjectInformatives = async (authToken: string, queryString?: 
     
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
 
-    const informativesWithTypeName = (data || []).map((informative: any) => ({
-      ...informative,
-      informative_type_name: informative.informative_types?.name ?? "",
-    })) as ProjectInformativeListResult[];
-
-    return informativesWithTypeName;
+    return data;
   } catch (error: any) {
     console.error("project-informatives.fetchProjectInformatives error:", error);
     throw new ApiError(error.type ?? "critical", error.message ?? "Erro inesperado");
   }
 };
 
-export const createProjectInformative = async (authToken: string, data: ProjectInformativeInsertBody): Promise<{ id: string }> => {
+export const createProjectInformative = async (authToken: string, user_id: string, data: ProjectInformativeInsertBody): Promise<{ id: string }> => {
   try {
     const client = createAuthenticatedClient(authToken);
+
+    const payload = {
+      ...data,
+      created_by: user_id,
+      created_at: new Date().toISOString()
+    };
     
     const { data: insertData, error } = await client
       .from("project_informatives")
-      .insert([data])
+      .insert([payload])
       .select("id")
       .single();
     

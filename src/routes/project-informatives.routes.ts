@@ -2,14 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as projectInformativesService from '../services/project-informatives.service';
 import { Type } from '@sinclair/typebox';
-import {
-  ProjectInformativeItemSchema,
-  ProjectInformativeInsertSchema,
-  ProjectInformativeUpdateSchema,
-  ProjectInformativeDeleteSchema,
-  ProjectInformativeQuerySchema,
-  ProjectInformativeQuery
-} from '../schemas/project-informatives.schema';
+import { ProjectInformativeItemSchema, ProjectInformativeInsertSchema, ProjectInformativeUpdateSchema, ProjectInformativeDeleteSchema, 
+  ProjectInformativeQuerySchema, ProjectInformativeQuery } from '../schemas/project-informatives.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
 
 export default async function projectInformativesRoutes(fastify: FastifyInstance) {
@@ -50,7 +44,7 @@ export default async function projectInformativesRoutes(fastify: FastifyInstance
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const informativeData = request.body as any;
-      const result = await projectInformativesService.createProjectInformative(request.authToken!, informativeData);
+      const result = await projectInformativesService.createProjectInformative(request.authToken!, request.user!.id, informativeData);
       return reply.code(201).send({ id: result.id, message: 'Informativo criado com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
