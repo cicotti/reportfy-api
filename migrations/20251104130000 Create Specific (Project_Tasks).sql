@@ -35,7 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_project_tasks_display_order ON public.project_tas
 /*** Triggers                                   ***/
 /**************************************************/
 
-CREATE TRIGGER handle_record_updated
+CREATE OR REPLACE TRIGGER handle_record_updated
   BEFORE UPDATE ON public.project_tasks
   FOR EACH ROW
   EXECUTE FUNCTION saas.handle_updated();

@@ -30,14 +30,36 @@ CREATE TABLE public.projects (
 /*** Functions                                  ***/
 /**************************************************/
 
+CREATE OR REPLACE FUNCTION public.handle_new_project()
+RETURNS trigger AS $$
+BEGIN
+  -- Insere um registro em project_informatives para cada informative_type da mesma empresa
+  INSERT INTO public.project_informatives (project_id, informative_type_id, created_by, created_at)
+  SELECT
+    NEW.id AS project_id,
+    it.id AS informative_type_id,
+    NEW.created_by AS created_by,
+    now() AS created_at
+  FROM public.informative_types it
+  WHERE it.company_id = NEW.company_id;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 /**************************************************/
 /*** Triggers                                   ***/
 /**************************************************/
 
-CREATE TRIGGER handle_record_updated
+CREATE OR REPLACE TRIGGER handle_record_updated
   BEFORE UPDATE ON public.projects
   FOR EACH ROW
   EXECUTE FUNCTION saas.handle_updated();
+
+CREATE OR REPLACE TRIGGER handle_new_project
+  AFTER INSERT ON public.projects
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_new_project();
 
 /**************************************************/
 /*** Security and Policies                      ***/

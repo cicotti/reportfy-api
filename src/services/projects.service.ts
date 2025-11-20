@@ -79,13 +79,13 @@ export const createProject = async (authToken: string, user_id: string, data: Pr
       created_at: new Date().toISOString()
     };
 
-    const { data: insertData, error } = await client
+    const { data: insertData, error: insertError } = await client
       .from("projects")
       .insert([payload])
       .select("id")
       .single();
 
-    if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
+    if (insertError) throw new ApiError("query", translateErrorCode(insertError.code, "database", "pt"));
 
     return { id: insertData.id };
   } catch (error: any) {

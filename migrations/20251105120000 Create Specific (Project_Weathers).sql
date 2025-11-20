@@ -30,7 +30,7 @@ CREATE INDEX IF NOT EXISTS idx_project_weathers_is_prediction ON public.project_
 /*** Triggers                                   ***/
 /**************************************************/
 
-CREATE TRIGGER handle_record_updated
+CREATE OR REPLACE TRIGGER handle_record_updated
   BEFORE UPDATE ON public.project_weathers
   FOR EACH ROW
   EXECUTE FUNCTION saas.handle_updated();

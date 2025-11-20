@@ -26,7 +26,7 @@ CREATE INDEX IF NOT EXISTS idx_informative_types_company_id ON public.informativ
 /*** Triggers                                   ***/
 /**************************************************/
 
-CREATE TRIGGER handle_record_updated
+CREATE OR REPLACE TRIGGER handle_record_updated
   BEFORE UPDATE ON public.informative_types
   FOR EACH ROW
   EXECUTE FUNCTION saas.handle_updated();
