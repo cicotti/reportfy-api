@@ -46,7 +46,7 @@ export default async function photosRoutes(fastify: FastifyInstance) {
       const photo = await photosService.uploadProjectPhoto(request.authToken!, request.user!.id, data);
       return reply.code(201).send(photo);
     } catch (error: any) {
-      return reply.code(500).send({ type: error.type, message: error.message });
+      return reply.code(500).send({ type: error.type || "critical", message: error.message });
     }
   });
 
