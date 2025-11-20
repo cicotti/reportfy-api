@@ -1,7 +1,7 @@
 import { createAuthenticatedClient, createAuthenticatedSaasClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
 import { ProjectListResult, ProjectInsertBody, ProjectUpdateBody, ProjectQuery } from '../schemas/projects.schema';
-import { convertLocationToLatLong } from '@/lib/utils';
+import { convertLocationToLatLong } from '../lib/utils';
 import { ApiError } from '../lib/errors';
 
 export const fetchProjects = async (authToken: string, queryString?: ProjectQuery): Promise<ProjectListResult[]> => {

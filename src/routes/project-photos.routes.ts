@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import * as photosService from '../services/project-photos.service';
 import { Type } from '@sinclair/typebox';
-import { PhotoItemSchema, PhotoDeleteSchema, PhotoQuerySchema, PhotoInsertBodySchema, PhotoQuery, PhotoInsertBody } from '../schemas/project-photos.schema';
+import { PhotoItemSchema, PhotoDeleteSchema, PhotoQuerySchema, PhotoUpdateSchema, PhotoQuery } from '../schemas/project-photos.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
 
 export default async function photosRoutes(fastify: FastifyInstance) {
@@ -32,7 +32,7 @@ export default async function photosRoutes(fastify: FastifyInstance) {
     preHandler: authenticate,
     schema: {
       tags: ['project-photos'],
-      description: 'Faz upload de uma foto para um projeto (multipart/form-data)',
+      description: 'Faz upload de uma foto para um projeto (multipart/form-data). Campos: project_id (obrigatório, UUID), description (opcional, string), file (obrigatório, imagem)',
       security: [{ bearerAuth: [] }],
       consumes: ['multipart/form-data'],
       response: {
@@ -43,29 +43,30 @@ export default async function photosRoutes(fastify: FastifyInstance) {
   }, async (request: any, reply) => {
     try {
       const data = await request.file();
-      
-      if (!data) {
-        return reply.code(500).send({ type: 'validation', message: 'Arquivo não fornecido' });
-      }
-
-      const buffer = await data.toBuffer();
-      const fields: any = data.fields;
-      const projectId = fields?.project_id?.value as string;
-      const description = fields?.description?.value as string | undefined;
-
-      if (!projectId) {
-        return reply.code(500).send({ type: 'validation', message: 'project_id é obrigatório' });
-      }
-
-      const photo = await photosService.uploadProjectPhoto(
-        (request as AuthenticatedRequest).authToken!,
-        projectId,
-        buffer,
-        data.filename,
-        description
-      );
-
+      const photo = await photosService.uploadProjectPhoto(request.authToken!, request.user!.id, data);
       return reply.code(201).send(photo);
+    } catch (error: any) {
+      return reply.code(500).send({ type: error.type, message: error.message });
+    }
+  });
+
+  fastify.put('/', {
+    preHandler: authenticate,
+    schema: {
+      tags: ['project-photos'],
+      description: 'Atualiza a descrição de uma foto',
+      security: [{ bearerAuth: [] }],
+      body: PhotoUpdateSchema,
+      response: {
+        200: IdMessageSchema,
+        500: ErrorSchema
+      }
+    }
+  }, async (request: AuthenticatedRequest, reply) => {
+    try {
+      const { id, ...photoData } = request.body as any;
+      await photosService.updateProjectPhoto(request.authToken!, id, photoData);
+      return reply.code(200).send({ id, message: 'Descrição da foto atualizada com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }

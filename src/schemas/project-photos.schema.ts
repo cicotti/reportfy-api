@@ -19,12 +19,12 @@ export const PhotoQuerySchema = Type.Object({
 
 export type PhotoQuery = Static<typeof PhotoQuerySchema>;
 
-export const PhotoInsertBodySchema = Type.Object({
-  project_id: Type.String({ format: 'uuid' }),
-  description: Type.Optional(Type.String())
+export const PhotoUpdateSchema = Type.Object({
+  id: Type.String({ format: 'uuid' }),
+  description: Type.Optional(Type.Union([Type.String(), Type.Null()]))
 });
 
-export type PhotoInsertBody = Static<typeof PhotoInsertBodySchema>;
+export type PhotoUpdateBody = Static<typeof PhotoUpdateSchema>;
 
 export const PhotoDeleteSchema = Type.Object({
   id: Type.String({ format: 'uuid' })
