@@ -153,7 +153,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
   }, async (request: any, reply) => {
     try {
       const data = await request.file();
-      const result = await usersService.uploadAvatar(request.authToken!, data);
+      const result = await usersService.uploadAvatar(request.authToken!, request.user!.id, data);
       return reply.code(200).send(result);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type ?? "critical", message: error.message });
@@ -173,7 +173,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const settings = await usersService.getUserSettings(request.authToken!);
+      const settings = await usersService.getUserSettings(request.authToken!, request.user!.id);
       return reply.code(200).send(settings);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
@@ -195,7 +195,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const data = request.body as any;
-      await usersService.updateUserSettings(request.authToken!, data);
+      await usersService.updateUserSettings(request.authToken!, request.user!.id, data);
       return reply.code(200).send({ id: 'settings', message: 'Configurações atualizadas com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });

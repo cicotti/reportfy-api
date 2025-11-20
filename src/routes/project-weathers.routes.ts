@@ -21,8 +21,8 @@ export default async function projectWeathersRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const query = request.query as WeatherQuery;
-      const weather = await weatherService.getProjectWeather(request.authToken!, query);
-      return reply.code(200).send(weather);
+      const result = await weatherService.getProjectWeather(request.authToken!, query);
+      return reply.code(200).send(result);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }
@@ -42,10 +42,9 @@ export default async function projectWeathersRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const syncData = request.body as WeatherSyncBody;
-      
-      await weatherService.syncProjectWeatherFromAPI(request.authToken!, request.user!.id, syncData);
-      return reply.code(200).send({ id: syncData.project_id, message: 'Clima sincronizado com sucesso' });
+      const data = request.body as WeatherSyncBody;
+      await weatherService.syncProjectWeatherFromAPI(request.authToken!, request.user!.id, data);
+      return reply.code(200).send({ id: data.project_id, message: 'Clima sincronizado com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });
     }

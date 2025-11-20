@@ -43,7 +43,7 @@ export default async function informativeTypesRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const typeData = request.body as any;
-      const result = await informativeTypesService.createInformativeType(request.authToken!, typeData);
+      const result = await informativeTypesService.createInformativeType(request.authToken!, request.user!.id, typeData);
       return reply.code(201).send({ id: result.id, message: 'Tipo de informativo criado com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });

@@ -28,15 +28,13 @@ export const fetchInformativeTypes = async (authToken: string, companyId?: strin
   }
 };
 
-export const createInformativeType = async (authToken: string, data: InformativeTypeInsertBody): Promise<{ id: string }> => {
+export const createInformativeType = async (authToken: string, user_id: string, data: InformativeTypeInsertBody): Promise<{ id: string }> => {
   try {
     const saasClient = createAuthenticatedClient(authToken);
-    const { data: { user }, error: userError } = await saasClient.auth.getUser();
-    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
-    
+        
     const payload = {
       ...data,
-      created_by: user.id,
+      created_by: user_id,
       created_at: new Date().toISOString()
     };
     

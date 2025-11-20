@@ -68,18 +68,14 @@ export const fetchProjects = async (authToken: string, queryString?: ProjectQuer
   }
 };
 
-export const createProject = async (authToken: string, data: ProjectInsertBody): Promise<{ id: string }> => {
+export const createProject = async (authToken: string, user_id: string, data: ProjectInsertBody): Promise<{ id: string }> => {
   try {
-    const saasClient = createAuthenticatedClient(authToken);
-    const { data: { user }, error: userError } = await saasClient.auth.getUser();
-    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
-    
     const client = createAuthenticatedClient(authToken);
 
     const payload = {
       ...data,
       location: `(${data.location.lat},${data.location.long})`,
-      created_by: user.id,
+      created_by: user_id,
       created_at: new Date().toISOString()
     };
 

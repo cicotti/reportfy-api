@@ -43,7 +43,7 @@ export default async function projectsRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const projectData = request.body as any;
-      const result = await projectsService.createProject(request.authToken!, projectData);
+      const result = await projectsService.createProject(request.authToken!, request.user!.id, projectData);
       return reply.code(201).send({ id: result.id, message: 'Projeto criado com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });

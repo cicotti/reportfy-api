@@ -83,18 +83,14 @@ const getMaxDisplayOrder = async (authToken: string, task: any): Promise<number>
 };
 
 
-export const createProjectTask = async (authToken: string, data: ProjectTaskInsertBody): Promise<{ id: string }> => {
-  try {
-    const saasClient = createAuthenticatedClient(authToken);
-    const { data: { user }, error: userError } = await saasClient.auth.getUser();
-    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
-
+export const createProjectTask = async (authToken: string, user_id: string, data: ProjectTaskInsertBody): Promise<{ id: string }> => {
+  try {    
     const client = createAuthenticatedClient(authToken);
 
     const payload = { 
       ...data,
       display_order: await getMaxDisplayOrder(authToken, data),
-      created_by: user.id,
+      created_by: user_id,
       created_at: new Date().toISOString()
     };
     

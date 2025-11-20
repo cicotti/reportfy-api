@@ -7,8 +7,6 @@ export interface AuthenticatedRequest extends FastifyRequest {
   user?: {
     id: string;
     email: string;
-    role?: string;
-    company_id?: string;
   };
   authToken?: string;
 }
@@ -38,15 +36,15 @@ export async function authenticate(request: AuthenticatedRequest, reply: Fastify
     request.authToken = token;
 
     // Verifica se o tenant está ativo
-    await checkTenant(request.authToken, request.user.id);
+    await checkTenant(token, user.id);
     
   } catch (error) {
     if (error instanceof ApiError) {
-      reply.code(403).send({ type: error.type, message: error.message });
+      return reply.code(403).send({ type: error.type, message: error.message });
     }
     if (error instanceof UnauthorizedError) {
-      reply.code(401).send({ type: "authentication", message: error.message });
+      return reply.code(401).send({ type: "authentication", message: error.message });
     }
-    reply.code(500).send({ type: "critical", message: "Erro inesperado ao autenticar usuário" });
+    return reply.code(500).send({ type: "critical", message: "Erro inesperado ao autenticar usuário" });
   }
 }

@@ -169,17 +169,14 @@ export const updateUserRole = async (authToken: string, data: UserRoleUpdateBody
   }
 };
 
-export const getUserSettings = async (authToken: string): Promise<UserSettingsResult> => {
+export const getUserSettings = async (authToken: string, user_id: string): Promise<UserSettingsResult> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
-    const { data: { user }, error: userError } = await saasClient.auth.getUser();
-    
-    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
 
     const { data, error } = await saasClient
       .from("user_settings")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", user_id)
       .single();
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
@@ -191,17 +188,14 @@ export const getUserSettings = async (authToken: string): Promise<UserSettingsRe
   }
 };
 
-export const updateUserSettings = async (authToken: string, data: UserSettingsUpdateBody): Promise<void> => {
+export const updateUserSettings = async (authToken: string, user_id: string, data: UserSettingsUpdateBody): Promise<void> => {
   try {
-    const saasClient = createAuthenticatedSaasClient(authToken);
-    const { data: { user }, error: userError } = await saasClient.auth.getUser();
-    
-    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
+    const saasClient = createAuthenticatedSaasClient(authToken);    
 
     const { error } = await saasClient
       .from("user_settings")
       .update(data)
-      .eq("user_id", user.id);
+      .eq("user_id", user_id);
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
   } catch (error: any) {
@@ -210,11 +204,9 @@ export const updateUserSettings = async (authToken: string, data: UserSettingsUp
   }
 };
 
-export const uploadAvatar = async (authToken: string, data: any): Promise<AvatarUploadResult> => {
+export const uploadAvatar = async (authToken: string, user_id: string, data: any): Promise<AvatarUploadResult> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
-    const { data: { user }, error: userError } = await saasClient.auth.getUser();
-    if (userError || !user) throw new ApiError("authentication", "Usuário não autenticado");
 
     const buffer = await data.toBuffer();
     const fileName = data.filename;
@@ -223,7 +215,7 @@ export const uploadAvatar = async (authToken: string, data: any): Promise<Avatar
     const { data: profileData } = await saasClient
       .from("profiles")
       .select("avatar_url")
-      .eq("id", user.id)
+      .eq("id", user_id)
       .single();
 
     if (profileData?.avatar_url) {
@@ -240,7 +232,7 @@ export const uploadAvatar = async (authToken: string, data: any): Promise<Avatar
 
     // Upload new avatar
     const fileExt = fileName.split(".").pop();
-    const storagePath = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const storagePath = `${user_id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
     const { data: uploadData, error: uploadError } = await saasClient.storage
       .from("avatars")
@@ -259,7 +251,7 @@ export const uploadAvatar = async (authToken: string, data: any): Promise<Avatar
     const { error: updateError } = await saasClient
       .from("profiles")
       .update({ avatar_url: urlData.publicUrl })
-      .eq("id", user.id);
+      .eq("id", user_id);
 
     if (updateError) {
       // Rollback: delete uploaded file
