@@ -20,7 +20,7 @@ import clientsRoutes from './routes/saas/clients.routes';
 import informativeTypesRoutes from './routes/informative-types.routes';
 import projectsRoutes from './routes/projects.routes';
 import projectTasksRoutes from './routes/project-tasks.routes';
-import projectWeatherRoutes from './routes/project-weather.routes';
+import projectWeathersRoutes from './routes/project-weathers.routes';
 import projectPhotosRoutes from './routes/project-photos.routes';
 import projectInformativesRoutes from './routes/project-informatives.routes';
 
@@ -138,7 +138,7 @@ async function start() {
     await fastify.register(informativeTypesRoutes, { prefix: '/api/informative-types' });
     await fastify.register(projectsRoutes, { prefix: '/api/projects' });
     await fastify.register(projectTasksRoutes, { prefix: '/api/project-tasks' });    
-    await fastify.register(projectWeatherRoutes, { prefix: '/api/project-weather' });
+    await fastify.register(projectWeathersRoutes, { prefix: '/api/project-weathers' });
     await fastify.register(projectPhotosRoutes, { prefix: '/api/project-photos' });    
     await fastify.register(projectInformativesRoutes, { prefix: '/api/project-informatives' });
 

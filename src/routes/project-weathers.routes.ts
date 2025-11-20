@@ -1,11 +1,11 @@
 import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
-import * as weatherService from '../services/project-weather.service';
+import * as weatherService from '../services/project-weathers.service';
 import { Type } from '@sinclair/typebox';
-import { WeatherItemSchema, WeatherSyncSchema, WeatherQuerySchema, WeatherQuery, WeatherSyncBody } from '../schemas/project-weather.schema';
+import { WeatherItemSchema, WeatherSyncSchema, WeatherQuerySchema, WeatherQuery, WeatherSyncBody } from '../schemas/project-weathers.schema';
 import { IdMessageSchema, ErrorSchema } from '../schemas/common.schema';
 
-export default async function weatherRoutes(fastify: FastifyInstance) {
+export default async function projectWeathersRoutes(fastify: FastifyInstance) {
   fastify.get('/', {
     preHandler: authenticate,
     schema: {
