@@ -24,3 +24,14 @@ export function getNextWeekEnd(): string {
   nextStart.setDate(nextStart.getDate() + 6);
   return nextStart.toISOString().split('T')[0];
 }
+
+export function convertLocationToLatLong(location: string): { lat: string; long: string } | undefined {
+  let result: { lat: string; long: string } | undefined = undefined;
+  if (location) {    
+    const m = location.match(/\(?\s*([^,()]+)\s*,\s*([^,()]+)\s*\)?/);
+    if (m) {
+      result = { lat: String(m[1]), long: String(m[2]) };
+    }
+  }
+  return result;
+}

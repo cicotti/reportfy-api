@@ -44,7 +44,7 @@ export default async function projectWeathersRoutes(fastify: FastifyInstance) {
     try {
       const syncData = request.body as WeatherSyncBody;
       
-      await weatherService.syncProjectWeatherFromAPI(request.authToken!, syncData);
+      await weatherService.syncProjectWeatherFromAPI(request.authToken!, request.user!.id, syncData);
       return reply.code(200).send({ id: syncData.project_id, message: 'Clima sincronizado com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });

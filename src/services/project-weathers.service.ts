@@ -1,6 +1,6 @@
 import { createAuthenticatedClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
-import { getCurrentWeekStart, getNextWeekEnd, getNextWeekStart } from '../lib/utils';
+import { convertLocationToLatLong, getCurrentWeekStart, getNextWeekEnd, getNextWeekStart } from '../lib/utils';
 import { WeatherListResult, WeatherSyncBody, WeatherQuery } from '../schemas/project-weathers.schema';
 import { ApiError } from '../lib/errors';
 
@@ -32,7 +32,7 @@ export const getProjectWeather = async (authToken: string, queryString?: Weather
   }
 };
 
-export function getWeatherDescription(weatherCode: number): string {
+function getWeatherDescription(weatherCode: number): string {
   const weatherCodes: { [key: number]: string } = {
     0: "Céu limpo",
     1: "Principalmente limpo",
@@ -60,14 +60,12 @@ export function getWeatherDescription(weatherCode: number): string {
   return weatherCodes[weatherCode] || "Clima não especificado";
 }
 
-export async function fetchWeatherFromAPI(
-  latitude: number,
-  longitude: number,
-  startDate: string,
-  endDate: string
-): Promise<any> {
+export async function fetchWeatherFromAPI(location: string, startDate: string, endDate: string): Promise<any> {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=America/Sao_Paulo&start_date=${startDate}&end_date=${endDate}`;
+    const coordenates = convertLocationToLatLong(location);
+    if (!coordenates) { return null; }
+
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coordenates.lat}&longitude=${coordenates.long}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=America/Sao_Paulo&start_date=${startDate}&end_date=${endDate}`;
 
     const response = await fetch(url);
     if (!response.ok) {
@@ -80,12 +78,8 @@ export async function fetchWeatherFromAPI(
   }
 }
 
-export const syncProjectWeatherFromAPI = async (
-  authToken: string,
-  syncData: WeatherSyncBody
-): Promise<void> => {
+export const syncProjectWeatherFromAPI = async (authToken: string, user_id: string, data: WeatherSyncBody): Promise<void> => {
   try {
-    const { project_id: projectId, latitude, longitude } = syncData;
     const client = createAuthenticatedClient(authToken);
     const today = new Date().toISOString().split('T')[0];
     const currentWeekStart = getCurrentWeekStart();
@@ -95,31 +89,41 @@ export const syncProjectWeatherFromAPI = async (
     const { count } = await client
       .from("project_weathers")
       .select("*", { count: "exact", head: true })
-      .eq("project_id", projectId)
+      .eq("project_id", data.project_id)
       .gte("weather_date", currentWeekStart)
       .lte("weather_date", nextWeekEnd)
       .gte("updated_at", today);
 
     if (count == 14) return;
 
-    const currentData = await fetchWeatherFromAPI(latitude, longitude, currentWeekStart, nextWeekEnd);
+    const {data: latlongData, error: latlongError} = await client
+      .from("projects")
+      .select("location")
+      .eq("id", data.project_id).single();
+    if (latlongError || !latlongData) {
+      throw new ApiError("query", "Não foi possível obter latitude e longitude do projeto");
+    }
 
+    const currentData = await fetchWeatherFromAPI(latlongData.location, currentWeekStart, nextWeekEnd);
     if (currentData?.daily) {
       const currentWeekRecords = currentData.daily.time.map(
         (date: string, index: number) => ({
-          project_id: projectId,
+          project_id: data.project_id,
           weather_date: date,
           min_temperature: Math.round(currentData.daily.temperature_2m_min[index]),
           max_temperature: Math.round(currentData.daily.temperature_2m_max[index]),
           climate: getWeatherDescription(currentData.daily.weather_code[index]),
           is_prediction: date >= nextWeekStart ? true : false,
+          created_by: user_id,
+          created_at: new Date().toISOString(),
         })
       );
             
       for (const record of currentWeekRecords) {
-        await client
+        const {error} = await client
           .from("project_weathers")
           .upsert(record, { onConflict: "project_id, weather_date" });
+        if (error) { throw new ApiError("query", translateErrorCode(error.code, "database", "pt")); }
       }
     }
   } catch (error: any) {
