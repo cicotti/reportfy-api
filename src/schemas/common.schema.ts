@@ -36,20 +36,7 @@ export const ProjectStatusSchema = Type.Union([
     long: Type.String()
   });
 
-export const MessageSchema = Type.Object({
-  message: Type.String()
-});
-
 export const IdMessageSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),
   message: Type.String()
-});
-
-// ===== Translation Schemas =====
-export const TranslationItemSchema = Type.Object({
-  id: Type.String({ format: 'uuid' }),
-  key: Type.String(),
-  language: Type.String(),
-  value: Type.String(),  
-  created_at: Type.String({ format: 'date-time' })
 });

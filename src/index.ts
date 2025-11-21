@@ -11,6 +11,7 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 // Tools Routes
 import toolsRoutes from './routes/tools.routes';
 import realtimeRoutes from './routes/realtime.routes';
+import translationsRoutes from './routes/saas/translations.routes';
 // SaaS Routes
 import authRoutes from './routes/saas/auth.routes';
 import companiesRoutes from './routes/saas/companies.routes';
@@ -79,6 +80,7 @@ async function start() {
           // Tools Tags
           //{ name: 'tools', description: 'Ferramentas auxiliares' },
           { name: 'realtime', description: 'Eventos em tempo real via SSE' },
+          { name: 'translations', description: 'Traduções do sistema' },
           // SaaS Tags
           { name: 'auth', description: 'Autenticação e gerenciamento de usuários' },
           { name: 'companies', description: 'Gerenciamento de empresas' },
@@ -129,6 +131,7 @@ async function start() {
     // Register tools routes
     await fastify.register(toolsRoutes, { prefix: '/api/tools' });
     await fastify.register(realtimeRoutes, { prefix: '/api/realtime' });
+    await fastify.register(translationsRoutes, { prefix: '/api/translations' });
     // Register SaaS routes
     await fastify.register(authRoutes, { prefix: '/api/auth' });
     await fastify.register(companiesRoutes, { prefix: '/api/companies' });

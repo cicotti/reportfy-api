@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { authenticate, AuthenticatedRequest } from '../../middleware/auth';
 import * as authService from '../../services/saas/auth.service';
 import { LoginBodySchema, UserSessionSchema, SignupBodySchema, ResetPasswordBodySchema, UpdatePasswordBodySchema, RefreshTokenBodySchema, TokenValiditySchema } from '../../schemas/saas/auth.schema';
-import { IdMessageSchema, ErrorSchema, MessageSchema } from '../../schemas/common.schema';
+import { IdMessageSchema, ErrorSchema } from '../../schemas/common.schema';
 
 export default async function authRoutes(fastify: FastifyInstance) {
 
@@ -55,7 +55,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       description: 'Solicita envio de email para recuperação de senha',
       body: ResetPasswordBodySchema,
       response: {
-        200: MessageSchema,
+        200: IdMessageSchema,
         500: ErrorSchema
       }
     }
@@ -78,7 +78,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       security: [{ bearerAuth: [] }],
       body: UpdatePasswordBodySchema,
       response: {
-        200: MessageSchema,
+        200: IdMessageSchema,
         500: ErrorSchema
       }
     }
@@ -142,7 +142,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
       description: 'Realiza logout do usuário e invalida o token',
       security: [{ bearerAuth: [] }],
       response: {
-        200: MessageSchema,
+        200: IdMessageSchema,
         500: ErrorSchema
       }
     }
