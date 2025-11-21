@@ -74,3 +74,5 @@ CREATE POLICY "ANYONE can manage ALL its own project_weathers" ON public.project
 /**************************************************/
 /*** Publications                               ***/
 /**************************************************/
+
+ALTER PUBLICATION supabase_realtime ADD TABLE public.project_weathers;
