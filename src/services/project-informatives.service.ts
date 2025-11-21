@@ -2,6 +2,7 @@ import { createAuthenticatedClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
 import { ProjectInformativeListResult, ProjectInformativeInsertBody, ProjectInformativeUpdateBody, ProjectInformativeQuery } from '../schemas/project-informatives.schema';
 import { ApiError } from '../lib/errors';
+import { formatDbNull } from '@/lib/utils';
 
 export const fetchProjectInformatives = async (authToken: string, queryString?: ProjectInformativeQuery): Promise<ProjectInformativeListResult[]> => {
   try {
@@ -56,13 +57,18 @@ export const createProjectInformative = async (authToken: string, user_id: strin
   }
 };
 
-export const updateProjectInformative = async (authToken: string, id: string, informativeData: Partial<ProjectInformativeUpdateBody>): Promise<void> => {
+export const updateProjectInformative = async (authToken: string, id: string, data: Partial<ProjectInformativeUpdateBody>): Promise<void> => {
   try {
     const client = createAuthenticatedClient(authToken);
+
+    const payload = {
+      ...data,
+      content: formatDbNull(data.content)
+    }
     
     const { error } = await client
       .from("project_informatives")
-      .update(informativeData)
+      .update(payload)
       .eq("id", id);
 
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));

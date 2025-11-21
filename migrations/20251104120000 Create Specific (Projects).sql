@@ -41,7 +41,8 @@ BEGIN
     NEW.created_by AS created_by,
     now() AS created_at
   FROM public.informative_types it
-  WHERE it.company_id = NEW.company_id;
+  WHERE it.company_id = NEW.company_id
+  ORDER BY it.display_order;
 
   RETURN NEW;
 END;
