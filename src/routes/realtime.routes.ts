@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { authenticate, AuthenticatedRequest } from '../middleware/auth';
+import { authenticateSSE, AuthenticatedRequest } from '../middleware/auth';
 import { createAuthenticatedClient } from '../lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -7,24 +7,38 @@ interface RealtimeParams {
   table: string;
 }
 
+interface RealtimeQuerystring {
+  token?: string;
+}
+
 export default async function realtimeRoutes(fastify: FastifyInstance) {
   
   // SSE endpoint para mudanças em tempo real de uma tabela
-  fastify.get<{ Params: RealtimeParams }>('/subscribe/:table', {
-    preHandler: authenticate,
+  fastify.get<{ Params: RealtimeParams; Querystring: RealtimeQuerystring }>('/subscribe/:table', {
+    preHandler: authenticateSSE,
     schema: {
       tags: ['realtime'],
-      description: 'Subscreve em mudanças em tempo real de uma tabela via SSE',
-      security: [{ bearerAuth: [] }],
+      description: 'Subscreve em mudanças em tempo real de uma tabela via SSE. EventSource não suporta headers, então o token deve ser enviado via query parameter.',
       params: {
         type: 'object',
         properties: {
           table: { 
             type: 'string',
-            enum: ['projects', 'project_tasks', 'project_photos', 'project_weathers', 'project_informatives']
+            enum: ['projects', 'project_tasks', 'project_photos', 'project_weathers', 'project_informatives'],
+            description: 'Nome da tabela para monitorar mudanças'
           }
         },
         required: ['table']
+      },
+      querystring: {
+        type: 'object',
+        properties: {
+          token: {
+            type: 'string',
+            description: 'Token JWT de autenticação (Bearer token sem o prefixo "Bearer ")'
+          }
+        },
+        required: ['token']
       }
     }
   }, async (request: AuthenticatedRequest, reply: FastifyReply) => {
