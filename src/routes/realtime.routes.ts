@@ -71,12 +71,13 @@ export default async function realtimeRoutes(fastify: FastifyInstance) {
             table: table 
           },
           (payload) => {
+            // Formato esperado pelo frontend
             sendEvent('database_change', {
-              type: payload.eventType,
+              type: payload.eventType, // INSERT, UPDATE, DELETE
               table: payload.table,
-              data: payload.new,
-              old: payload.old,
-              timestamp: new Date().toISOString()
+              schema: 'public',
+              new: payload.new,
+              old: payload.old
             });
           }
         )
