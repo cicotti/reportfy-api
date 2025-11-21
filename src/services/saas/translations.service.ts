@@ -1,13 +1,11 @@
-import { createAuthenticatedSaasClient } from '../../lib/supabase';
+import { supabaseSaas } from '../../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
 import { TranslationListResult, TranslationQuery } from '../../schemas/saas/translations.schema';
 import { ApiError } from '../../lib/errors';
 
-export const fetchTranslations = async (authToken: string, queryString?: TranslationQuery): Promise<TranslationListResult[]> => {
+export const fetchTranslations = async (queryString?: TranslationQuery): Promise<TranslationListResult[]> => {
   try {
-    const saasClient = createAuthenticatedSaasClient(authToken);
-    
-    let query = saasClient
+    let query = supabaseSaas
       .from("translations")
       .select("*")
       .order("language", { ascending: true })
