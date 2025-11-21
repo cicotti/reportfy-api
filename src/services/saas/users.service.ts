@@ -96,18 +96,14 @@ export const deleteUser = async (authToken: string, data: UserDeleteBody): Promi
   }
 };
 
-export const getCurrentUserContext = async (authToken: string): Promise<UserContextResult> => {
+export const getCurrentUserContext = async (authToken: string, user_id: string): Promise<UserContextResult> => {
   try {
-    const { data: { user }, error: error } = await supabase.auth.getUser(authToken);
-    
-    if (error || !user) throw new ApiError("authentication", translateErrorCode(error?.code, "auth", "pt"));
-
     const saasClient = createAuthenticatedSaasClient(authToken);
 
     const { data: profileData, error: profileError } = await saasClient
       .from('profiles')
       .select('name, email, avatar_url, company_id')
-      .eq('id', user.id)
+      .eq('id', user_id)
       .single();
 
     if (profileError) throw new ApiError("query", translateErrorCode(profileError.code, "database", "pt"));
@@ -115,7 +111,7 @@ export const getCurrentUserContext = async (authToken: string): Promise<UserCont
     const { data: roleData, error: roleError } = await saasClient
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
+      .eq('user_id', user_id)
       .single();
     
     if (roleError) throw new ApiError("query", translateErrorCode(roleError.code, "database", "pt"));
@@ -123,13 +119,13 @@ export const getCurrentUserContext = async (authToken: string): Promise<UserCont
     const {data: settingsData, error: settingsError } = await saasClient
       .from('user_settings')
       .select('language, theme')
-      .eq('user_id', user.id)
+      .eq('user_id', user_id)
       .single();
 
     if (settingsError) throw new ApiError("query", translateErrorCode(settingsError.code, "database", "pt"));
 
     return {
-      id: user.id,
+      id: user_id,
       company_id: profileData.company_id,
       email: profileData.email,
       name: profileData.name,

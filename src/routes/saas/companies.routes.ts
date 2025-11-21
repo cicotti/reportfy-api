@@ -43,7 +43,7 @@ export default async function companiesRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const data = request.body as any;
-      var result = await companiesService.createCompany(request.authToken!, data);
+      var result = await companiesService.createCompany(request.authToken!, request.user!.id, data);
       return reply.code(201).send({ id: result.id, message: 'Empresa criada com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });

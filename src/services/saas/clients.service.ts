@@ -37,13 +37,19 @@ export const fetchClients = async (authToken: string, queryString?: ClientQuery)
   }
 };
 
-export const createClient = async (authToken: string, data: ClientInsertBody): Promise<{ id: string }> => {
+export const createClient = async (authToken: string, user_id: string, data: ClientInsertBody): Promise<{ id: string }> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
+
+    const payload = {
+      ...data,
+      created_by: user_id,
+      created_at: new Date().toISOString()
+    };
     
     const { data: result, error } = await saasClient
       .from("clients")
-      .insert([data])
+      .insert([payload])
       .select("id")
       .single();
     

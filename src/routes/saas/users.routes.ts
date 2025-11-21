@@ -109,7 +109,7 @@ export default async function usersRoutes(fastify: FastifyInstance) {
     }
   }, async (request: AuthenticatedRequest, reply) => {
     try {
-      const user = await usersService.getCurrentUserContext(request.authToken!);
+      const user = await usersService.getCurrentUserContext(request.authToken!, request.user!.id);
       return reply.code(200).send(user);
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });

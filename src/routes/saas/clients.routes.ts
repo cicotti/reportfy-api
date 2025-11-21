@@ -43,7 +43,7 @@ export default async function clientsRoutes(fastify: FastifyInstance) {
   }, async (request: AuthenticatedRequest, reply) => {
     try {
       const data = request.body as any;
-      const result = await clientsService.createClient(request.authToken!, data);
+      const result = await clientsService.createClient(request.authToken!, request.user!.id, data);
       return reply.code(201).send({ id: result.id, message: 'Cliente criado com sucesso' });
     } catch (error: any) {
       return reply.code(500).send({ type: error.type, message: error.message });

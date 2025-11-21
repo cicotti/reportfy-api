@@ -33,12 +33,19 @@ export const fetchCompanies = async (authToken: string, queryString?: CompanyQue
   }
 };
 
-export const createCompany = async (authToken: string, data: CompanyInsertBody): Promise<{ id: string }> => {
+export const createCompany = async (authToken: string, user_id: string, data: CompanyInsertBody): Promise<{ id: string }> => {
   try {
     const saasClient = createAuthenticatedSaasClient(authToken);
+
+    const payload = {
+      ...data,
+      created_by: user_id,
+      created_at: new Date().toISOString()
+    };
+
     const { data: result, error } = await saasClient
       .from("companies")
-      .insert([data])
+      .insert([payload])
       .select("id").single();
     
     if (error) throw new ApiError("query", translateErrorCode(error.code, "database", "pt"));
