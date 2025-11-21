@@ -2,7 +2,7 @@ import { createAuthenticatedClient } from '../lib/supabase';
 import { translateErrorCode } from 'supabase-error-translator-js';
 import { ProjectInformativeListResult, ProjectInformativeInsertBody, ProjectInformativeUpdateBody, ProjectInformativeQuery } from '../schemas/project-informatives.schema';
 import { ApiError } from '../lib/errors';
-import { formatDbNull } from '@/lib/utils';
+import { formatDbNull } from '../lib/utils';
 
 export const fetchProjectInformatives = async (authToken: string, queryString?: ProjectInformativeQuery): Promise<ProjectInformativeListResult[]> => {
   try {
